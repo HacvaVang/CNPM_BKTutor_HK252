@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -22,7 +22,7 @@ export default function LoginPage() {
       const response = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username, password }),
       });
       if (response.ok) {
         const data = await response.json();
@@ -37,69 +37,112 @@ export default function LoginPage() {
   };
 
   return (
-    <Container maxWidth="sm">
       <Box
         sx={{
           minHeight: '100vh',
+          minWidth: '100vw',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
         }}
       >
-        <Paper elevation={3} sx={{ p: 4, width: '100%' }}>
-          <Typography variant="h4" sx={{ mb: 3, fontWeight: 600, textAlign: 'center' }}>
-            BKTutor Login
-          </Typography>
+        <Paper elevation={3} sx={{
+           p: 4, 
+           width: '40%',
+           mx: 'auto'
+           }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+              <Box
+                sx={{
+                  background: 'white',
+                  padding: 1,
+                  borderRadius: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <img
+                  src="/bk-logo.png"
+                  alt="BK Logo"
+                  style={{ width: 80, height: 80 }}
+                />
+              </Box>
+            </Box>
+            <Typography variant="h4" sx={{ mb: 3, fontWeight: 600, textAlign: 'center' }}>
+              BKTutor Login
+            </Typography>
 
-          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-          <form onSubmit={handleLogin}>
-            <TextField
-              fullWidth
-              label="Email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              margin="normal"
-              variant="outlined"
-            />
-            <TextField
-              fullWidth
-              label="Password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              margin="normal"
-              variant="outlined"
-            />
-            <Button
-              fullWidth
-              variant="contained"
-              size="large"
-              type="submit"
-              sx={{ mt: 3 }}
-            >
-              Login
-            </Button>
-          </form>
-
-          <Typography variant="body2" sx={{ mt: 2, textAlign: 'center' }}>
-            Không có tài khoản?{' '}
+            <form onSubmit={handleLogin} >
+              <TextField
+                fullWidth
+                label="Username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                margin="normal"
+                variant="outlined"
+              />
+              <TextField
+                fullWidth
+                label="Password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                margin="normal"
+                variant="outlined"
+              />
+              <label style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <input type="checkbox" name="remember" />
+                Warn me before logging me into other sites
+              </label>
+              <div
+                style={{
+                  gap: "10px",
+                  display: "flex",
+                  justifyContent: "center"
+                }}
+              >
+                <Button
+                  variant="contained"
+                  size="large"
+                  type="submit"
+                  sx={{ mt: 3 }}
+                >
+                  Login
+                </Button>
+                <Button
+                  variant="contained"
+                  size="large"
+                  sx={{ mt: 3 }}
+                  onClick={() => {
+                      setUsername('');
+                      setPassword('');
+                      setError('');
+                    }
+                  }
+                >
+                  Clear
+                </Button>
+              </div>
+            </form>
             <Typography
-              component="span"
-              onClick={() => navigate('/register')}
+              component="a"
+              href="#"
               sx={{
-                color: '#0099ff',
+                mt:1,
+                display: 'block',
+                color: 'blue',
+                textDecoration: 'underline',
                 cursor: 'pointer',
-                fontWeight: 600,
-                '&:hover': { textDecoration: 'underline' },
+                '&:hover': {opacity: 0.8}
               }}
             >
-              Đăng ký tại đây
+              Change password?
             </Typography>
-          </Typography>
         </Paper>
       </Box>
-    </Container>
   );
 }
