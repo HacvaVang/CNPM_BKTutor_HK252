@@ -15,17 +15,15 @@ export default function HomePage() {
   const navigate = useNavigate();
 
   return (
-    <Box className="home-page">
+    <Box className="home-page" sx={{width:'100vw', height:'100vh'}}>
       {/* Header Navigation */}
-      <AppBar position="sticky" className="header-nav">
+      <AppBar className="header-nav">
         <Toolbar>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexGrow: 1 }}>
             <img src="/bk-logo.png" alt="BK Logo" style={{ width: 50, height: 50 }} />
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
               BK Tutor
             </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', gap: 3 }}>
             <Typography
               component="a"
               href="#"
@@ -103,10 +101,10 @@ export default function HomePage() {
       </AppBar>
 
       {/* Hero Section */}
-      <Box className="hero-section">
+      <Box className="hero-section" sx={{ pt: 8, position: 'relative', zIndex: 2 }}>
         <Box className="hero-overlay"></Box>
-        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 2 }}>
-          <Grid container spacing={4} alignItems="center" sx={{ minHeight: 500 }}>
+        <Container maxWidth="lg" spacing={4}>
+          <Grid container spacing={4} alignItems="center" sx={{ minHeight: 500}}>
             <Grid item xs={12} md={6}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
                 <Box
@@ -147,14 +145,13 @@ export default function HomePage() {
                 TRƯỜNG ĐẠI HỌC BÁCH KHOA
               </Typography>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={6} >
               <Box
                 component="img"
                 src="/team-background.jpg"
                 alt="BK Tutor Team"
                 sx={{
                   width: '100%',
-                  height: 400,
                   objectFit: 'cover',
                   borderRadius: 2,
                   opacity: 0.95,

@@ -1,23 +1,16 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import HomePage from './pages/HomePage';
-import LoginPage from './pages/LoginPage';
-import DashboardPage from './pages/DashboardPage';
+import { routes } from './routes';
+import { Suspense, lazy } from 'react';
 import './App.css';
 
 const theme = createTheme({
   palette: {
-    primary: {
-      main: '#0099ff',
-    },
-    secondary: {
-      main: '#764ba2',
-    },
+    primary: { main: '#0099ff' },
+    secondary: { main: '#764ba2' },
   },
-  typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-  },
+  typography: { fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif' },
 });
 
 function App() {
@@ -25,12 +18,15 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        <Suspense fallback={<div>Loading...</div>}>
+          <Routes>
+            {routes.map(({ path, importFn }) => {
+              const Element = lazy(importFn); // pass the import function directly
+              return <Route key={path} path={path} element={<Element />} />;
+            })}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
       </Router>
     </ThemeProvider>
   );
