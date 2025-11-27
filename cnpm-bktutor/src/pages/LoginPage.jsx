@@ -8,7 +8,11 @@ import {
   Button,
   Typography,
   Alert,
+  Divider,
+  Stack
 } from '@mui/material';
+
+import LanguageIcon from '@mui/icons-material/Language'
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -73,75 +77,60 @@ export default function LoginPage() {
               BKTutor Login
             </Typography>
 
-            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-
-            <form onSubmit={handleLogin} >
-              <TextField
-                fullWidth
-                label="Username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                margin="normal"
-                variant="outlined"
-              />
-              <TextField
-                fullWidth
-                label="Password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                margin="normal"
-                variant="outlined"
-              />
-              <label style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                <input type="checkbox" name="remember" />
-                Warn me before logging me into other sites
-              </label>
-              <div
-                style={{
-                  gap: "10px",
-                  display: "flex",
-                  justifyContent: "center"
-                }}
-              >
-                <Button
-                  variant="contained"
-                  size="large"
-                  type="submit"
-                  sx={{ mt: 3 }}
-                >
-                  Login
-                </Button>
-                <Button
-                  variant="contained"
-                  size="large"
-                  sx={{ mt: 3 }}
-                  onClick={() => {
-                      setUsername('');
-                      setPassword('');
-                      setError('');
-                    }
-                  }
-                >
-                  Clear
-                </Button>
-              </div>
-            </form>
-            <Typography
-              component="a"
-              href="#"
-              sx={{
-                mt:1,
-                display: 'block',
-                color: 'blue',
-                textDecoration: 'underline',
-                cursor: 'pointer',
-                '&:hover': {opacity: 0.8}
-              }}
-            >
-              Change password?
+            <Box sx={{
+              backgroundColor: '#f69898ff', 
+              borderRadius: 2, 
+              height: 40, 
+              color: '#582020ff', 
+              alignItems: "center", 
+              textAlign: "center",
+              justifyContent: "center",
+              display: "flex"
+            }}>
+              Your session has timed out. Please log in again.
+            </Box>
+            
+            <Box sx={{width:'100%', my: 2}}>
+              <Divider sx={{ borderBottomWidth: 1, borderColor: '#919090ff' }}/>
+            </Box>
+            <Typography sx= {{color: '#919090ff'}}>
+              Login using your account on:
             </Typography>
+            <Stack sx={{width:'100%'}}>
+              <Button
+                variant="outlined"
+                sx = {{borderColor: '#919090ff', color: '#919090ff'}}
+                fullWidth
+                onClick={() => window.location.href="https://localhost:8000/sso/login"}
+              >
+                <img
+                  src="/bk-logo.png"
+                  alt="BK Logo"
+                  style={{ width: 20, height: 20 }}
+                />
+                HCMUT Account
+              </Button>
+              <Button
+                variant="outlined"
+                sx = {{borderColor: '#919090ff', color: '#919090ff'}}
+                fullWidth
+                onClick={() => window.location.href="https://localhost:8000/admin"}
+              >
+                Admin
+              </Button>
+            </Stack>
+
+            <Box sx={{width:'100%', my: 2}}>
+              <Divider sx={{ borderBottomWidth: 1, borderColor: '#919090ff' }}/>
+            </Box>
+
+            <Button
+              sx = {{borderColor: '#919090ff'}}
+              variant='outlined'
+              startIcon={<LanguageIcon/>}
+            >
+              Language
+            </Button>
         </Paper>
       </Box>
   );
