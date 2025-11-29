@@ -1,0 +1,15 @@
+source venv/bin/activate
+cd sso_backend
+python3 manage.py miragte // Check 
+python3 manage.py runserver
+
+
+cas_project/
+├── cas_project/  (Project Configuration)
+│   ├── settings.py
+│   └── urls.py
+├── my_app/       (Application)
+│   ├── views.py
+│   └── templates/
+│       └── index.html
+└── requirements.txt
