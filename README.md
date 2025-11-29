@@ -16,3 +16,5 @@ Cách đê clone git:
 git clone https://github.com/HacvaVang/CNPM_BKTutor_HK252.git
 ```
 
+chay file api.py trong service de no dieu huong page
+
