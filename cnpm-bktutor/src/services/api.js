@@ -27,3 +27,5 @@ export const submitAssignment = async (courseId, assignmentData) => {
   });
   return response.json();
 };
+
+export const API_URL = "http://localhost:7999";
