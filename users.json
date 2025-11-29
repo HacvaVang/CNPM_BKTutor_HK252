@@ -1,0 +1,32 @@
+{
+    "t1": {
+        "role": "teacher",
+        "name": "Nguyễn Văn A",
+        "email": "teacher.a@example.com",
+        "sessions": []
+    },
+    "t2": {
+        "role": "teacher",
+        "name": "Trần Thị B",
+        "email": "teacher.b@example.com",
+        "sessions": []
+    },
+    "s1": {
+        "role": "student",
+        "name": "Phạm Minh C",
+        "email": "student.c@example.com",
+        "sessions": []
+    },
+    "s2": {
+        "role": "student",
+        "name": "Lê Hoàng D",
+        "email": "student.d@example.com",
+        "sessions": []
+    },
+    "s3": {
+        "role": "student",
+        "name": "Đỗ Thanh E",
+        "email": "student.e@example.com",
+        "sessions": []
+    }
+}
