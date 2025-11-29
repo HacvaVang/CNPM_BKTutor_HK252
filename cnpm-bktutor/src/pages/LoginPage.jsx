@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Container,
@@ -12,33 +11,56 @@ import {
   Stack
 } from '@mui/material';
 
+import { useState, useEffect } from 'react';
+
 import LanguageIcon from '@mui/icons-material/Language'
 
 export default function LoginPage() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const [identity, setIdentity] = useState(null)
+  const [loading, setLoading] = useState(false)
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('token', data.token);
-        navigate('/dashboard');
-      } else {
-        setError('Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
-      }
-    } catch (err) {
-      setError('Lỗi kết nối. Vui lòng thử lại.');
+  const fetchidentity = async () => {
+    try{
+      setLoading(true);
+      const res = await fetch('http://127.0.0.1:8080/api/identity', {
+        method: "GET",
+        credentials: "include"
+      })
+      const data = await res.json();
+      setIdentity(data);
+    } catch (err){
+      console.log(err);
+    } finally {
+      setLoading(false);
     }
-  };
+  }
+
+  useEffect(() => {
+      const run = async () => {
+        await fetchidentity();
+      };
+      run();
+    }, []);
+  
+    useEffect(() => {
+      if (!identity) return;
+      switch (identity.role) {
+          case "admin":
+              navigate("/adminhome");
+          break;
+          case "student":
+              navigate("/studenthome");
+          break;
+          case "tutor":
+              navigate("/tutorhome");
+          break;
+          default:
+              navigate("/login");
+          break;
+      }
+    }, [identity, navigate]);
 
   return (
       <Box
@@ -101,7 +123,7 @@ export default function LoginPage() {
                 variant="outlined"
                 sx = {{borderColor: '#919090ff', color: '#919090ff'}}
                 fullWidth
-                onClick={() => window.location.href="https://localhost:8000/sso/login"}
+                onClick={() => window.location.href="https://172.19.241.189:8001/login"}
               >
                 <img
                   src="/bk-logo.png"
