@@ -99,4 +99,4 @@ def get_materials(subject_code: str):
 
     return grouped
 
-# use: uvicorn library_server:app --reload --port 7999
+# use: uvicorn material_server:app --reload --port 7999
