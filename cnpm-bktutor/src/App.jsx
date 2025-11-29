@@ -24,7 +24,7 @@ function App() {
               const Element = lazy(importFn); // pass the import function directly
               return <Route key={path} path={path} element={<Element />} />;
             })}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </Suspense>
       </Router>
