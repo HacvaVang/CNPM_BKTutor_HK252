@@ -1,5 +1,4 @@
 # CNPM_BKTutor_HK252
-SE_assignment. Don't fuck up
 
 ## Nhiêm vụ chung:
  - Front-end (Vũ, An, Quang): Xây dựng Frame, thiết kế bổ sung UI va Screenflow.
