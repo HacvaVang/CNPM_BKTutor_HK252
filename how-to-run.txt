@@ -4,12 +4,7 @@ python3 manage.py miragte // Check
 python3 manage.py runserver
 
 
-cas_project/
-├── cas_project/  (Project Configuration)
+sso_backend/
+├── sso_backend/  (Project Configuration)
 │   ├── settings.py
 │   └── urls.py
-├── my_app/       (Application)
-│   ├── views.py
-│   └── templates/
-│       └── index.html
-└── requirements.txt

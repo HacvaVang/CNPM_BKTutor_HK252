@@ -1,4 +1,8 @@
 from pathlib import Path
+from datetime import timedelta
+import logging
+# Đã loại bỏ import RefreshToken ở đây để tránh lỗi AppRegistryNotReady
+# from rest_framework_simplejwt.tokens import RefreshToken 
 
 # Cấu hình BASE_DIR dựa trên cấu trúc dự án lồng
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -9,20 +13,17 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
-    # Django Core
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
-    # Ứng dụng CAS Server (mama_cas)
     'mama_cas',
-
-    # Ứng dụng JWT và API
     'rest_framework',
     'rest_framework_simplejwt',
+    'sso_backend',
+    # 'jwt_debugger',
 ]
 
 MIDDLEWARE = [
@@ -37,11 +38,9 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'sso_backend.urls'
 
-# Cấu hình Template (Đã được kiểm tra và chỉnh sửa trước đó)
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        # Đảm bảo DIRS trỏ đến thư mục 'templates' nằm ngang hàng với thư mục cấu hình 'sso_backend'
         'DIRS': [BASE_DIR / 'templates'], 
         'APP_DIRS': True,
         'OPTIONS': {
@@ -55,37 +54,75 @@ TEMPLATES = [
     },
 ]
 
-# --- CẤU HÌNH MAMA_CAS QUAN TRỌNG ---
-# MAMA_CAS_SERVICES: Định nghĩa các dịch vụ Client được phép. 
-# CHỈNH SỬA: Chuyển sang định dạng Dictionary để khắc phục lỗi AttributeError: 'str' object has no attribute 'copy'.
+# --- HÀM TIỆN ÍCH TẠO JWT CHO ATTRIBUTES CAS ---
+
+def get_access_token_with_roles(user):
+    """
+    Tạo Access Token và chèn Claims 'roles' vào Payload.
+    """
+    # 💥 IMPORT TRÌ HOÃN: Chỉ import khi hàm được gọi
+    from rest_framework_simplejwt.tokens import RefreshToken 
+    
+    refresh = RefreshToken.for_user(user)
+    access = refresh.access_token
+
+    # Lấy Roles (sử dụng tên Groups của Django) và chèn vào Access Token
+    user_roles = [g.name for g in user.groups.all()]
+    access['roles'] = user_roles
+
+    logger.info(f"--- Token Generation for User: {user.username} ---")
+    logger.info(f"User Roles: {user_roles}")
+    logger.info(f"Generated Access Token: {str(access)[:50]}...")
+    logger.info(f"Generated Refresh Token: {str(refresh)[:50]}...")
+
+
+    # Trả về Access Token dưới dạng chuỗi
+    return str(access)
+
+def get_refresh_token(user):
+    """
+    Tạo Refresh Token.
+    """
+    # 💥 IMPORT TRÌ HOÃN: Chỉ import khi hàm được gọi
+    from rest_framework_simplejwt.tokens import RefreshToken 
+    
+    refresh = RefreshToken.for_user(user)
+    # Trả về Refresh Token dưới dạng chuỗi
+    return str(refresh)
+
+# --- CẤU HÌNH MAMA_CAS (SỬ DỤNG HÀM RIÊNG BIỆT CHO MỖI THUỘC TÍNH) ---
+
 MAMA_CAS_SERVICES = [
     {
-        # Regex cho Client Flask đang chạy trên cổng 8001 (http://127.0.0.1:8001/.*)
-        'SERVICE': r'^http://127\.0\.0\.1:8001/.*',
-        'NAME': 'Client Flask Localhost (127.0.0.1)',
-        # Thêm các thuộc tính tùy chỉnh (như JWT) mà bạn muốn trả về
-        'ATTRIBUTES': {
-            'jwt_access_token': lambda user: 'placeholder_access_token', # Thay thế bằng logic JWT thật
-            'jwt_refresh_token': lambda user: 'placeholder_refresh_token',
-        }
-    },
-    {
-        # Regex cho Client Flask đang chạy trên cổng 8001 (http://localhost:8001/.*)
         'SERVICE': r'^http://localhost:8001/.*',
-        'NAME': 'Client Flask Localhost (localhost)',
+        'NAME': 'Flask Client',
         'ATTRIBUTES': {
-            'jwt_access_token': lambda user: 'placeholder_access_token', # Thay thế bằng logic JWT thật
-            'jwt_refresh_token': lambda user: 'placeholder_refresh_token',
+            'jwt_access_token': get_access_token_with_roles,
+            'jwt_refresh_token': get_refresh_token,
         }
     },
-    
-    # Thêm các dịch vụ khác nếu có
+]
+
+
+MAMA_CAS_ATTRIBUTE_CALLBACKS = [
+    'sso_backend.cas_callbacks.jwt_attributes',
 ]
 
 # Định nghĩa URL gốc của CAS Server
-CAS_SERVER_URL = 'http://127.0.0.1:8000/sso' 
+CAS_SERVER_URL = 'http://127.0.0.1:8000/' 
 
-# Thêm các cấu hình khác của bạn (như JWT)
+# --- CẤU HÌNH JWT (JSON WEB TOKEN) ---
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1), 
+    "ROTATE_REFRESH_TOKENS": True,
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": SECRET_KEY,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "user_id",
+}
+
 
 # Database
 DATABASES = {
