@@ -16,7 +16,7 @@ import { vi } from "date-fns/locale";
 import clsx from "clsx";
 
 // =======================================================================
-// === 1. COMPONENTS POP-UP MỚI ===
+// === 1. COMPONENTS POP-UP ĐÃ CẬP NHẬT (THÊM GIẢNG VIÊN) ===
 // =======================================================================
 
 // --- Pop-up Chi tiết Sự kiện ---
@@ -41,6 +41,10 @@ const EventDetailPopup = ({ event, onClose }) => {
           </p>
           <p>
             <span className="font-semibold text-gray-900">Giờ:</span> {event.formattedTime}
+          </p>
+          {/* THÊM TRƯỜNG GIẢNG VIÊN */}
+          <p>
+            <span className="font-semibold text-gray-900">Giảng viên:</span> <span className="text-lg font-medium text-red-600">{event.lecturer}</span>
           </p>
           <p>
             <span className="font-semibold text-gray-900">Phòng/Địa điểm:</span> <span className="text-lg font-medium text-purple-600">{event.room}</span>
@@ -91,6 +95,10 @@ const AllEventsPopup = ({ day, events, onClose }) => {
               <div className="text-sm text-green-700 mt-1">
                 <span className="font-semibold">Thời gian:</span> {event.formattedTime}
               </div>
+              {/* THÊM TRƯỜNG GIẢNG VIÊN */}
+              <div className="text-sm text-red-600">
+                <span className="font-semibold">Giảng viên:</span> <span className="font-medium">{event.lecturer}</span>
+              </div>
               <div className="text-sm text-green-700">
                 <span className="font-semibold">Phòng:</span> <span className="font-medium">{event.room}</span>
               </div>
@@ -113,7 +121,7 @@ const AllEventsPopup = ({ day, events, onClose }) => {
 
 
 // =======================================================================
-// === 2. COMPONENTS PHỤ (Giữ nguyên hoặc cập nhật nhẹ) ===
+// === 2. COMPONENTS PHỤ ĐÃ CẬP NHẬT ===
 // =======================================================================
 
 const CalendarHeader = ({ currentDate, changeMonth, locale }) => {
@@ -159,10 +167,10 @@ const CalendarDaysHeader = () => {
   );
 };
 
-// --- CẬP NHẬT: Thêm hàm xử lý pop-up ---
+// --- CẬP NHẬT: Thêm hiển thị tên giảng viên trong ô lịch ---
 const CalendarCells = ({ calendarData, currentDate, today, events, openDetailPopup, openAllEventsPopup }) => {
   const getEventsForDay = (day) => events.filter((e) => isSameDay(e.dateObject, day));
-  const limit = 4; // Giới hạn số sự kiện hiển thị
+  const limit = 3; // Giới hạn số sự kiện hiển thị trên ô lịch để có đủ chỗ cho tên giảng viên
 
   return (
     <div className="grid grid-cols-7 border-l border-b border-gray-300">
@@ -203,17 +211,19 @@ const CalendarCells = ({ calendarData, currentDate, today, events, openDetailPop
                   key={event.id}
                   onClick={() => openDetailPopup(event)} // Gán sự kiện click để mở chi tiết
                   className="bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-md p-2 border-l-4 border-blue-600 cursor-pointer shadow-sm"
-                  title={event.title}
+                  title={`${event.title} - ${event.lecturer || event.tutorid}`} // Thêm giảng viên vào title
                 >
                   <div className="font-semibold text-blue-900 truncate">{event.title}</div>
-                  <div className="text-blue-700 flex items-center justify-between mt-1">
-                    <span>{event.formattedTime}</span>
-                    <span className="font-medium">{event.room}</span>
+                  <div className="text-blue-700 mt-1">
+                    <span className="block">{event.formattedTime}</span>
+                    <span className="font-medium text-red-600 truncate block mt-1">
+                      {event.lecturer}
+                    </span>
                   </div>
                 </div>
               ))}
 
-              {/* CẬP NHẬT: Button mở Tất cả sự kiện */}
+              {/* Button mở Tất cả sự kiện */}
               {dayEvents.length > limit && (
                 <button
                   onClick={() => openAllEventsPopup(day, dayEvents)} // Gán sự kiện click để mở tất cả
@@ -231,7 +241,7 @@ const CalendarCells = ({ calendarData, currentDate, today, events, openDetailPop
 };
 
 // =======================================================================
-// === 3. COMPONENT CHÍNH ĐÃ CẬP NHẬT ===
+// === 3. COMPONENT CHÍNH ĐÃ CẬP NHẬT LOGIC FETCH ===
 // =======================================================================
 export default function CalendarPage() {
   const [events, setEvents] = useState([]);
@@ -253,32 +263,71 @@ export default function CalendarPage() {
 
 
   useEffect(() => {
-    // ... (Hàm fetchEvents giữ nguyên)
     const fetchEvents = async () => {
         try {
           setLoading(true);
           setError(null);
   
-          const response = await fetch("http://127.0.0.1:8080/api/events", {
+          // 1. FETCH DANH SÁCH SỰ KIỆN GỐC
+          const eventsResponse = await fetch("http://127.0.0.1:8080/api/events", {
             method: "GET",
             credentials: "include", // bắt buộc vì backend kiểm tra session cookie
           });
   
-          if (!response.ok) {
-            if (response.status === 401) {
+          if (!eventsResponse.ok) {
+            if (eventsResponse.status === 401) {
               setError("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
             } else {
-              throw new Error(`HTTP ${response.status}`);
+              throw new Error(`HTTP ${eventsResponse.status}`);
             }
             return;
           }
   
-          const data = await response.json();
+          const eventsData = await eventsResponse.json();
   
-          const processedEvents = data.map((event) => {
+          // 2. TẠO DANH SÁCH PROMISE ĐỂ FETCH TÊN GIẢNG VIÊN SONG SONG
+          const eventsWithTutorPromises = eventsData.map(async (event) => {
+            const tutorId = event.tutorid;
+
+            if (!tutorId) {
+                return { ...event, lecturer: "Chưa phân công" };
+            }
+
+            try {
+                // Fetch tên giảng viên từ API user
+                const userResponse = await fetch(`http://127.0.0.1:8080/api/user?id=${tutorId}`, {
+                    method: "GET",
+                    credentials: "include",
+                });
+                
+                if (!userResponse.ok) {
+                    console.warn(`Không thể lấy chi tiết user ID: ${tutorId}`);
+                    return { ...event, lecturer: `ID: ${tutorId} (Lỗi tải)` };
+                }
+
+                const userData = await userResponse.json();
+                
+                // Lấy trường 'name' từ dữ liệu user
+                const lecturerName = userData.name || `ID: ${tutorId} (Không rõ tên)`; 
+                
+                return {
+                    ...event,
+                    lecturer: lecturerName, // Thêm trường lecturer
+                };
+
+            } catch (fetchError) {
+                console.error(`Lỗi khi fetch user ID ${tutorId}:`, fetchError);
+                return { ...event, lecturer: `ID: ${tutorId} (Lỗi kết nối)` };
+            }
+          });
+  
+          // 3. ĐỢI TẤT CẢ CÁC YÊU CẦU HOÀN TẤT
+          const eventsWithTutorNames = await Promise.all(eventsWithTutorPromises);
+
+          // 4. XỬ LÝ FORMAT NGÀY/GIỜ
+          const processedEvents = eventsWithTutorNames.map((event) => {
             // Parse ngày từ trường "date" (YYYY-MM-DD)
-            const dateObj = parseISO(event.date); // hoặc parse(event.date, "yyyy-MM-dd", new Date())
-  
+            const dateObj = parseISO(event.date); 
             // Parse giờ từ timestart và timeend (ISO string)
             const startTime = parseISO(event.timestart);
             const endTime = parseISO(event.timeend);
@@ -287,6 +336,7 @@ export default function CalendarPage() {
               ...event,
               dateObject: dateObj,
               formattedTime: `${format(startTime, "HH:mm")} → ${format(endTime, "HH:mm")}`,
+              // trường lecturer đã có sẵn từ Promise.all
             };
           });
   
@@ -300,7 +350,7 @@ export default function CalendarPage() {
       };
 
     fetchEvents();
-  }, []);
+  }, []); // Dependecy array trống để chỉ chạy 1 lần khi mount
 
   // Tính lưới lịch
   const calendarData = useMemo(() => {
@@ -348,7 +398,7 @@ export default function CalendarPage() {
           )}
 
           {/* Hiển thị lưới lịch */}
-          {!loading && !error && events.length > 0 && (
+          {!loading && !error && (
             <CalendarCells
               calendarData={calendarData}
               currentDate={currentDate}
