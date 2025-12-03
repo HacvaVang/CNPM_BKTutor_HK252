@@ -14,10 +14,37 @@ Cách đê clone git:
 ```
 git clone https://github.com/HacvaVang/CNPM_BKTutor_HK252.git
 ```
-Tại folder gốc: npm run start (run client)
-Tại src/api: python(3 đối với mac) api.py(run server app)
-Tại HCMUT_LIBRARY: 
-- pip install -r requirements.txt
-- uvicorn libcore_server:app --reload --port 7999(run data_core)
-Phiên bản hiện tại chưa sync với CAS nên truy cập http://127.0.0.1:8080/set-cookie để tạo cookie giả lập cho quá trình chạy.
+# Hướng dẫn chạy dự án locally
 
+### Yêu cầu
+- Node.js (cho frontend)
+- Python 3.10+ (cho backend và data core)
+- Git
+
+### Các thành phần cần chạy đồng thời
+
+#### 1. Chạy Client (Frontend)
+Mở terminal tại **thư mục gốc của dự án** (nơi có file `package.json`):
+
+```bash
+npm install          # chỉ chạy lần đầu hoặc khi có thay đổi dependencies
+npm run start
+```
+### 2. Chạy Server (Backend)
+```bash
+cd src/api
+python3 api.py        # Mac/Linux
+# hoặc
+python api.py         # Windows
+```
+- Chạy http://127.0.0.1:8080/set-cookie để tạo cookie giả lập 
+### 3. Chạy Data_core
+```bash
+cd HCMUT_LIBRARY
+
+# Cài đặt dependencies (chỉ cần chạy lần đầu hoặc khi requirements.txt thay đổi)
+pip install -r requirements.txt
+
+# Khởi động server
+uvicorn libcore_server:app --reload --port 7999
+```
