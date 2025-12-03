@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request, Response, make_response, redirect, ur
 from flask_cors import CORS
 import csv, uuid
 import json
+import requests
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True, origins=["http://localhost:5173"])
@@ -25,7 +26,7 @@ def session_validate():
     except FileNotFoundError:
         return None
 
-def identification():
+def identification(id = None):
     cookie_val = session_validate()
     if cookie_val is None:
         return {
@@ -34,25 +35,30 @@ def identification():
             "role": None,
             "state": None
         }
-    key = str(cookie_val["user_id"]).strip()
+    key = ""
+    if id is not None:
+        key = str(id).strip()
+    else:
+        key = str(cookie_val["user_id"]).strip()
     try:
-        with open("roles.csv", newline="", encoding="utf-8") as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                if str(row["userid"]) == key:
-                    return {
-                        "selfid": key,
-                        "name": row["name"],
-                        "role": row["role"],
-                        "state": row["state"]
-                    }
+        response = requests.get("http://127.0.0.1:7999/user?user_id=" + key)
+        if response.status_code == 200:
+            data = response.json()
+            print(data["name"])
             return {
-                    "selfid": None,
-                    "name": None,
-                    "role": None,
-                    "state": None
+                    "selfid": data.get("user_id", None),
+                    "name": data.get("name", None),
+                    "role": data.get("role", None),
+                    "state": data.get("status", None)
                 }
-    except FileNotFoundError:
+        else:
+            return {
+                "selfid": None,
+                "name": None,
+                "role": None,
+                "state": None
+            }
+    except requests.exceptions.RequestException:
         return {
                 "selfid": None,
                 "name": None,
@@ -172,6 +178,19 @@ def get_messages():
 @app.route("/api/identity", methods=["GET"])
 def get_identity():
     data = identification()
+    return jsonify(data)
+
+@app.route("/api/user", methods=["GET"])
+def get_user():
+    
+    user_id = request.args.get("id")
+
+    if not user_id:
+        # Xử lý trường hợp không có ID được cung cấp
+        return jsonify({"error": "Missing 'id' query parameter"}), 400
+
+    data = identification(user_id)
+
     return jsonify(data)
 
 @app.route("/api/events", methods=["GET"])
