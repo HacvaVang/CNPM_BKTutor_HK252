@@ -14,6 +14,10 @@ Cách đê clone git:
 ```
 git clone https://github.com/HacvaVang/CNPM_BKTutor_HK252.git
 ```
-
-chay file api.py trong service de no dieu huong page
+Tại folder gốc: npm run start (run client)
+Tại src/api: python(3 đối với mac) api.py(run server app)
+Tại HCMUT_LIBRARY: 
+- pip install -r requirements.txt
+- uvicorn libcore_server:app --reload --port 7999(run data_core)
+Phiên bản hiện tại chưa sync với CAS nên truy cập http://127.0.0.1:8080/set-cookie để tạo cookie giả lập cho quá trình chạy.
 
