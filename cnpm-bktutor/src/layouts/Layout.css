@@ -15,3 +15,10 @@
     padding: 10px 0;
   }
 }
+.my-grid-container {
+  /* This is the mandatory line! */
+  display: grid;
+  /* Add your template columns/rows */
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}

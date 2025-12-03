@@ -4,7 +4,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { routes } from './routes';
 import { Suspense, lazy } from 'react';
 import './App.css';
-
+import './index.css';
 const theme = createTheme({
   palette: {
     primary: { main: '#0099ff' },
