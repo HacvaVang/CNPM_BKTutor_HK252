@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request, Response, make_response, redirect, url_for
 from flask_cors import CORS
-import csv
+import csv, uuid
 import json
 
 app = Flask(__name__)
@@ -70,7 +70,7 @@ def read_notifications():
         with open("notifications.csv", newline="", encoding="utf-8") as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
-                if row["userid"] == key:
+                if row["userid"] == str(key):
                     notifications.append({
                         "id": row["notifid"],
                         "message": row["message"],
@@ -98,7 +98,7 @@ def read_messages():
         with open("messages.csv", newline="", encoding="utf-8") as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
-                if row["userid"] == key:
+                if row["userid"] == str(key):
                     messages.append({
                         "id": row["messageid"],
                         "to": usermap[row["receiverid"]],
@@ -106,6 +106,32 @@ def read_messages():
                         "date": row["date"]
                     })
             return messages
+    except FileNotFoundError:
+        return []
+    
+
+def read_events():
+    cookie_val = session_validate()
+    if cookie_val is None:
+        return []
+    key = cookie_val["user_id"]
+    events = []
+    try:
+        with open("events.csv", newline="", encoding="utf-8") as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                if row["userid"] == str(key) and row["status"] == "upcoming":
+                    events.append({
+                        "id": row["eventid"],
+                        "title": row["title"],
+                        "userid": row["userid"],
+                        "date": row["date"],
+                        "timestart": row["timestart"],
+                        "timeend": row["timeend"],
+                        "room": row["room"],
+                        "tutorid": row["tutorid"]
+                    })  
+            return events
     except FileNotFoundError:
         return []
 
@@ -118,8 +144,8 @@ def set_cookie():
         "exp": 1764492775, # Thời gian hết hạn (Unix timestamp)
         "iat": 1764406375, # Thời gian tạo (Issued At)
         "jti": "93e37f741c954dcdb9ba07de80fbbb71", # ID token duy nhất
-        "user_id": 2,
-        "role": "student"
+        "user_id": 1,
+        "role": "tutor"
     })
     resp.set_cookie("session", cookie_value, httponly=True, samesite="None", secure=True)
 
@@ -148,6 +174,11 @@ def get_identity():
     data = identification()
     return jsonify(data)
 
+@app.route("/api/events", methods=["GET"])
+def get_events():
+    data = read_events()
+    return jsonify(data)
+
 @app.route("/logout")
 def logout():
     #delete entry in ticket.csv
@@ -173,6 +204,31 @@ def logout():
     # overwrite cookie with empty value and expired date
     resp.set_cookie("session", "", expires=0, httponly=True, samesite="None", secure=True)
     return resp
+
+@app.route("/api/create-event", methods=["POST"])
+def create_event():
+    data = request.json
+    eventid = str(uuid.uuid4())
+
+    row = {
+        "eventid": eventid,
+        "title": data.get("title", ""),
+        "userid": data.get("userid", ""),
+        "date": str(data.get("start")).split("T")[0],  # YYYY-MM-DD
+        "timestart": data.get("start", ""),
+        "timeend": data.get("end", ""),
+        "room": data.get("room", ""),
+        "status": data.get("status", "scheduled"),
+        "tutorid": data.get("userid", "")
+    }
+
+    with open("events.csv", "a", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=row.keys())
+        if f.tell() == 0:
+            writer.writeheader()
+        writer.writerow(row)
+
+    return jsonify({"success": True, "eventid": eventid})
 
 if __name__ == "__main__":
     app.run(debug=True, port=8080)
