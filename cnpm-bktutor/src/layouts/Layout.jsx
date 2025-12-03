@@ -12,11 +12,15 @@ import {
   Container,
 } from '@mui/material';
 import { useState } from 'react';
-import './Layout.css';
+import './Layout.css'; // Giữ nguyên, nhưng đảm bảo file này không có CSS xung đột
+
+// Chiều rộng cố định của Sidebar
+const DRAWER_WIDTH = 250; 
 
 export default function Layout() {
   const navigate = useNavigate();
   const [openDrawer, setOpenDrawer] = useState(false);
+  const isAuthenticated = localStorage.getItem('token'); // Kiểm tra trạng thái đăng nhập
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -26,11 +30,14 @@ export default function Layout() {
   const navItems = [
     { label: 'Dashboard', path: '/dashboard' },
     { label: 'Courses', path: '/courses' },
+    { label: 'Calendar', path: '/calendar' }, // Thêm lịch vào Sidebar
     { label: 'Profile', path: '/profile' },
   ];
 
   return (
-    <Box className="layout">
+    // 1. Container chính: Đặt Flex Direction là cột (Header trên, Nội dung dưới)
+    <Box className="layout" sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      
       {/* Header */}
       <AppBar position="sticky" sx={{ background: 'linear-gradient(90deg, #0099ff 0%, #0077cc 100%)' }}>
         <Toolbar>
@@ -68,28 +75,36 @@ export default function Layout() {
             ))}
           </Box>
 
-          <Button
-            variant="contained"
-            color="inherit"
-            sx={{ ml: 2, backgroundColor: 'rgba(255,255,255,0.2)', color: 'white' }}
-            onClick={handleLogout}
-          >
-            Đăng xuất
-          </Button>
+          {isAuthenticated && (
+            <Button
+              variant="contained"
+              color="inherit"
+              sx={{ ml: 2, backgroundColor: 'rgba(255,255,255,0.2)', color: 'white' }}
+              onClick={handleLogout}
+            >
+              Đăng xuất
+            </Button>
+          )}
         </Toolbar>
       </AppBar>
 
-      {/* Main Container */}
+      {/* 2. Main Container: Đặt Flex để Sidebar và Content nằm cạnh nhau */}
       <Box sx={{ display: 'flex', flexGrow: 1 }}>
-        {/* Sidebar */}
+        
+        {/* Sidebar (Drawer) */}
         <Drawer
           variant="permanent"
           sx={{
-            width: 250,
+            width: DRAWER_WIDTH,
+            flexShrink: 0, // QUAN TRỌNG: Đảm bảo sidebar không bao giờ co lại
             '& .MuiDrawer-paper': {
-              width: 250,
+              width: DRAWER_WIDTH,
               boxSizing: 'border-box',
               backgroundColor: '#f5f5f5',
+              // Đảm bảo Drawer nằm dưới AppBar
+              position: 'relative', 
+              height: '100%',
+              zIndex: 1,
             },
           }}
         >
@@ -116,9 +131,17 @@ export default function Layout() {
           </Box>
         </Drawer>
 
-        {/* Content */}
-        <Box className="main-content">
-          <Container maxWidth="lg" sx={{ py: 3 }}>
+        {/* 3. Content: Chiếm toàn bộ không gian còn lại */}
+        <Box 
+          className="main-content"
+          sx={{ 
+            flexGrow: 1,           
+            minWidth: 0,           
+            overflowX: 'auto',     
+            backgroundColor: '#f5f5f5', 
+          }}
+        >
+          <Container maxWidth="xl" sx={{ py: 3 }}> {/* Đã đổi maxWidth thành "xl" để lịch có thêm không gian */}
             <Outlet />
           </Container>
         </Box>
