@@ -32,7 +32,7 @@ npm run start
 ```
 ### 2. Chạy Server (Backend)
 ```bash
-cd src/api
+cd src/services
 python3 api.py        # Mac/Linux
 # hoặc
 python api.py         # Windows
