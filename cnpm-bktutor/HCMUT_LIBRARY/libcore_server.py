@@ -117,14 +117,16 @@ def get_user(user_id: str):
                 "user_id": user_id,
                 "name": row.get("Name", ""),
                 "status": row.get("Status", ""),
-                "role": row.get("Role", "")
+                "role": row.get("Role", ""),
+                "major": row.get("Major", "")  
             }
 
     return {
         "user_id": user_id,
         "name": "Không tìm thấy",
         "status": "",
-        "role": ""
+        "role": "",
+        "major": ""
     }
 
 # use: uvicorn libcore_server:app --reload --port 7999
