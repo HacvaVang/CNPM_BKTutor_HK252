@@ -1,210 +1,85 @@
-import { useState, useEffect } from "react";
-import { API_URL } from "../services/api.js";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
-  AppBar,
-  Toolbar,
   Box,
   Typography,
   Button,
-  IconButton,
+  CircularProgress,
+  Collapse,
+  Link,
 } from "@mui/material";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import MessageIcon from '@mui/icons-material/Message';
-import SettingsIcon from '@mui/icons-material/Settings';
-import CheckIcon from '@mui/icons-material/Check';
-import { useContext } from "react";
-import { IdentityContext } from "../services/IdentityContext";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+
+// --- MOCKING/PLACEHOLDER ---
+import { API_URL } from "../services/api.js";
+import NavigationBar from "../components/NavigationBar.jsx";
+// --- END MOCKING ---
+
+// Ánh xạ tab UI → key trong dữ liệu API
+const TAB_KEY_MAPPING = {
+  "Lý thuyết": "Sách & Giáo trình",
+  "Bài tập": "Bài tập",
+};
 
 export default function SubjectMaterialPage() {
-  const { subjectCode } = useParams();
-  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const subjectId = useMemo(() => searchParams.get("subjectid")?.trim() || "", [searchParams]);
 
   const [tab, setTab] = useState("Lý thuyết");
-  const [materials, setMaterials] = useState({ "Lý thuyết": [], "Bài tập": [] });
+  const [materials, setMaterials] = useState({
+    "Sách & Giáo trình": [],
+    "Bài tập": [],
+  });
   const [subjectName, setSubjectName] = useState("");
-
-  // --- Identity / notifications / messages state ---
-  const [notifAnchor, setNotifAnchor] = useState(null);
-  const [messageAnchor, setMessageAnchor] = useState(null);
-  const Notiopen = Boolean(notifAnchor);
-  const MessageOpen = Boolean(messageAnchor);
-  const [notifications, setNotifications] = useState([]);
-  const [messages, setMessages] = useState([]);
-  const { identity } = useContext(IdentityContext);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [expandAll, setExpandAll] = useState(false); // Trạng thái mở rộng tất cả liên kết
 
   useEffect(() => {
-    // Fetch subject name
-    fetch(`${API_URL}/subject/${subjectCode}`)
-      .then(r => r.json())
-      .then(data => setSubjectName(data.subject_name || "Môn học"));
-
-    // Fetch materials
-    fetch(`${API_URL}/materials/${subjectCode}`)
-      .then(r => r.json())
-      .then(data => setMaterials(data));
-  }, [subjectCode]);
-
-  // --- Identity / Notifications / Messages functions ---
-  const handleLogout = async () => {
-    try {
-      await fetch(`${API_URL}/logout`, { method: "GET", credentials: "include" });
-      navigate("/login");
-    } catch (err) {
-      console.error("Logout failed", err);
-    }
-  };
-
-  const fetchidentity = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch(`${API_URL}/identity`, { method: "GET", credentials: "include" });
-      const data = await res.json();
-      setIdentity(data);
-    } catch (err) {
-      console.log(err);
-    } finally {
+    if (!subjectId) {
+      setSubjectName("Mã môn học không hợp lệ");
       setLoading(false);
+      return;
     }
-  };
 
-  const fetchNotifications = async () => {
-    try {
+    const fetchMaterialData = async () => {
       setLoading(true);
-      const res = await fetch(`${API_URL}/notifications`, { method: "GET", credentials: "include" });
-      const data = await res.json();
-      setNotifications(data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+      try {
+        // 1. Lấy tên môn học
+        let response = await fetch(`${API_URL}/subject/${subjectId}`);
+        let data = await response.json();
+        setSubjectName(data.subject_name || "Môn học");
 
-  const fetchMessages = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch(`${API_URL}/messages`, { method: "GET", credentials: "include" });
-      const data = await res.json();
-      setMessages(data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+        // 2. Lấy tài liệu (dữ liệu có cấu trúc như bạn cung cấp)
+        response = await fetch(`${API_URL}/materials/${subjectId}`);
+        data = await response.json();
 
-  const groupedMessages = messages.reduce((acc, msg) => {
-    if (!acc[msg.to]) acc[msg.to] = [];
-    acc[msg.to].push(msg);
-    return acc;
-  }, {});
+        // data sẽ là: { "Sách & Giáo trình": [...], "Bài tập": [...] }
+        setMaterials(data);
+      } catch (error) {
+        console.error("Lỗi khi tải tài liệu:", error);
+        setSubjectName("Lỗi tải dữ liệu");
+        setMaterials({ "Sách & Giáo trình": [], "Bài tập": [] });
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const handleNotifClick = (event) => {
-    setNotifAnchor(event.currentTarget);
-    fetchNotifications();
-  };
-  const handleNotifClose = () => setNotifAnchor(null);
-  const handleMessageClick = (event) => {
-    setMessageAnchor(event.currentTarget);
-    fetchMessages();
-  };
-  const handleMessageClose = () => setMessageAnchor(null);
+    fetchMaterialData();
+  }, [subjectId]);
 
-  useEffect(() => {
-    fetchidentity();
-  }, []);
-
-  const currentList = materials[tab] || [];
+  // Lấy danh sách hiện tại theo tab đang chọn
+  const apiKey = TAB_KEY_MAPPING[tab];
+  const currentList = materials[apiKey] || [];
 
   return (
     <Box sx={{ width: "100vw", minHeight: "100vh", backgroundColor: "#f5f5f5", overflowX: "hidden" }}>
-      {/* --- AppBar from HomePage --- */}
-      <AppBar className="header-nav">
-        <Toolbar>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexGrow: 1 }}>
-            <img src="/bk-logo.png" alt="BK Logo" style={{ width: 50, height: 50, cursor: 'pointer' }} onClick={() => navigate('/adminhome')}/>
-            <Typography variant="h6" sx={{ fontWeight: 600, cursor: 'pointer' }} onClick={() => navigate('/adminhome')}>
-              BK Tutor
-            </Typography>
+      <NavigationBar />
 
-            <Typography
-              component="a"
-              href="#"
-              sx={{ color: 'white', textDecoration: 'none', fontWeight: 500, cursor: 'pointer', '&:hover': { opacity: 0.8 } }}
-              onClick={() => navigate('/adminhome')}
-            >
-              Trang chủ
-            </Typography>
-
-            <Typography
-              component="a"
-              href="#"
-              sx={{ color: 'white', textDecoration: 'none', fontWeight: 500, cursor: 'pointer', '&:hover': { opacity: 0.8 } }}
-              onClick={() => navigate('/calendar')}
-            >
-              Lịch
-            </Typography>
-
-            <Box sx={{
-              bgcolor: 'rgba(255,255,255,0.25)',
-              color: 'white',
-              px: 2.5,
-              py: 1,
-              borderRadius: 2,
-              fontWeight: 600,
-              fontSize: '1rem',
-              backdropFilter: 'blur(4px)',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-              cursor: 'default',
-              userSelect: 'none',
-            }}>
-              Tài liệu
-            </Box>
-
-            <Typography
-              component="a"
-              href="#"
-              sx={{ color: 'white', textDecoration: 'none', fontWeight: 500, cursor: 'pointer', '&:hover': { opacity: 0.8 } }}
-            >
-              Các lớp học của tôi
-            </Typography>
-          </Box>
-
-          <Box sx={{ display: 'flex', gap: 2, marginLeft: 4 }}>
-            {/* Notifications */}
-            <IconButton sx={{ color: 'white' }} onClick={handleNotifClick}>
-              <NotificationsIcon />
-            </IconButton>
-
-            {/* Messages */}
-            <IconButton sx={{ color: 'white' }} onClick={handleMessageClick}>
-              <MessageIcon />
-            </IconButton>
-
-            <Typography alignContent="center"
-              component="a"
-              href="#"
-              sx={{ color: 'white', textDecoration: 'none', fontWeight: 500, cursor: 'pointer', '&:hover': { opacity: 0.8 } }}
-              onClick={() => navigate('/userinfo')}
-            >  
-              {identity?.name || "Unknown"}
-            </Typography>
-
-            <Button sx={{ backgroundColor: 'white', color: '#0099ff', fontWeight: 600 }} onClick={handleLogout}>
-              Logout
-            </Button>
-          </Box>
-        </Toolbar>
-      </AppBar>
-
-      {/* --- Page Content --- */}
       <Box sx={{ maxWidth: "lg", mx: "auto", mt: 4, px: { xs: 2, sm: 4 }, pb: 8 }}>
-        {/* Title */}
         <Typography variant="h4" sx={{ color: "#0099ff", fontWeight: 600, mb: 4 }}>
-          Tài liệu {subjectName} ({subjectCode})
+          Tài liệu {subjectName} ({subjectId})
         </Typography>
 
         {/* Tabs */}
@@ -212,7 +87,10 @@ export default function SubjectMaterialPage() {
           {["Lý thuyết", "Bài tập"].map((t) => (
             <Button
               key={t}
-              onClick={() => setTab(t)}
+              onClick={() => {
+                setTab(t);
+                setExpandAll(false); // Đóng mở rộng khi đổi tab
+              }}
               sx={{
                 bgcolor: tab === t ? "#0099ff" : "#f0f0f0",
                 color: tab === t ? "white" : "#555",
@@ -222,7 +100,6 @@ export default function SubjectMaterialPage() {
                 fontSize: "1.1rem",
                 fontWeight: 600,
                 textTransform: "none",
-                boxShadow: "none",
                 "&:hover": { bgcolor: tab === t ? "#007acc" : "#e0e0e0" },
               }}
             >
@@ -231,45 +108,103 @@ export default function SubjectMaterialPage() {
           ))}
         </Box>
 
-        {/* Expand All */}
-        <Typography sx={{ textAlign: "right", color: "#0099ff", fontWeight: 500, cursor: "pointer", mb: 3 }}>
-          Mở rộng tất cả
-        </Typography>
+        {/* Nút Mở rộng / Thu gọn tất cả liên kết */}
+        <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 3 }}>
+          <Button
+            onClick={() => setExpandAll(!expandAll)}
+            startIcon={expandAll ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+            sx={{
+              color: "#0099ff",
+              fontWeight: 600,
+              textTransform: "none",
+              "&:hover": { bgcolor: "rgba(0, 153, 255, 0.04)" },
+            }}
+          >
+            {expandAll ? "Thu gọn" : "Mở rộng"} tất cả liên kết
+          </Button>
+        </Box>
 
-        {/* Materials List */}
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          {currentList.length > 0 ? (
-            currentList.map((item, idx) => (
+        {/* Danh sách tài liệu */}
+        {loading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", p: 6 }}>
+            <CircularProgress color="primary" />
+            <Typography sx={{ ml: 2, color: "#555" }}>Đang tải tài liệu...</Typography>
+          </Box>
+        ) : (
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            {currentList.length > 0 ? (
+              currentList.map((item, idx) => (
+                <Box key={idx}>
+                  {/* Tiêu đề tài liệu - click để mở file ngay */}
+                  <Box
+                    sx={{
+                      bgcolor: "white",
+                      border: "1px solid #ddd",
+                      borderRadius: 2,
+                      p: "14px 24px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 2,
+                      cursor: "pointer",
+                      transition: "all 0.2s",
+                      "&:hover": {
+                        borderColor: "#0099ff",
+                        boxShadow: "0 4px 12px rgba(0, 153, 255, 0.1)",
+                      },
+                    }}
+                    onClick={() => window.open(item.file_url, "_blank")}
+                  >
+                    <ArrowForwardIosIcon sx={{ fontSize: 18, color: "#0099ff" }} />
+                    <Typography sx={{ fontSize: "1.1rem", color: "#333", fontWeight: 500 }}>
+                      {item.title}
+                    </Typography>
+                  </Box>
+
+                  {/* Đường dẫn chi tiết (hiển thị khi mở rộng) */}
+                  <Collapse in={expandAll}>
+                    <Box
+                      sx={{
+                        pl: 6,
+                        py: 2,
+                        bgcolor: "#fafafa",
+                        borderRadius: "0 0 8px 8px",
+                        border: "1px dashed #ddd",
+                        borderTop: "none",
+                        mt: -1,
+                      }}
+                    >
+                      <Typography variant="body2" color="text.secondary" gutterBottom>
+                        Đường dẫn:
+                      </Typography>
+                      <Link
+                        href={item.file_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        sx={{ wordBreak: "break-all", fontSize: "0.95rem", color: "#0099ff" }}
+                      >
+                        {item.file_url}
+                      </Link>
+                    </Box>
+                  </Collapse>
+                </Box>
+              ))
+            ) : (
               <Box
-                key={idx}
                 sx={{
                   bgcolor: "white",
-                  border: "1px solid #ddd",
+                  p: 6,
                   borderRadius: 2,
-                  p: "14px 24px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 2,
-                  cursor: "pointer",
-                  transition: "border 0.2s",
-                  "&:hover": { borderColor: "#0099ff" },
+                  textAlign: "center",
+                  border: "1px dashed #ddd",
                 }}
-                onClick={() => window.open(item.file_url, "_blank")}
               >
-                <ArrowForwardIosIcon sx={{ fontSize: 18, color: "#0099ff" }} />
-                <Typography sx={{ fontSize: "1.1rem", color: "#333", fontWeight: 500 }}>
-                  {item.title}
+                <Typography color="text.secondary" variant="h6">
+                  Chưa có tài liệu nào trong mục {tab} này.
                 </Typography>
               </Box>
-            ))
-          ) : (
-            <Box sx={{ bgcolor: "white", p: 6, borderRadius: 2, textAlign: "center" }}>
-              <Typography color="text.secondary" variant="h6">
-                Chưa có tài liệu nào trong mục này.
-              </Typography>
-            </Box>
-          )}
-        </Box>
+            )}
+          </Box>
+        )}
       </Box>
     </Box>
   );

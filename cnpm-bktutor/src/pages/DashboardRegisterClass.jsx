@@ -306,6 +306,12 @@ const App = () => {
       {/* === THÊM NAVIGATION BAR Ở ĐÂY === */}
       {/* Prop identity cần được truyền từ state quản lý người dùng thực tế */}
       <NavigationBar/> 
+            {/* FIX: Thêm padding-top (pt-20) cho div chính 
+              để tránh nội dung bị che bởi NavigationBar cố định
+            */}
+            <div className="pt-20 p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
+                {/* Lệnh <script> đã được xóa vì đây là file JSX */}
+      
         <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
             <script src="https://cdn.tailwindcss.com"></script>
 
@@ -404,6 +410,7 @@ const App = () => {
                     )}
                 </div>
             </div>
+        </div>
         </div>
         </>
     );
