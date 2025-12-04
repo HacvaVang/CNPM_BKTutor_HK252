@@ -30,6 +30,19 @@ export default function HomePage() {
   const [identity, setIdentity] = useState(null)
   const [loading, setLoading] = useState(false)
 
+  const handleLogout = async () => {
+    try {
+        await fetch("http://127.0.0.1:8080/logout", {
+        method: "GET",
+        credentials: "include"
+        });
+        // after cookie is cleared, redirect to login
+        navigate("/login");
+    } catch (err) {
+        console.error("Logout failed", err);
+    }
+    };
+
   const fetchidentity = async () => {
     try{
       setLoading(true);
@@ -106,19 +119,6 @@ export default function HomePage() {
     setMessageAnchor(null);
   };
 
-  const handleLogout = async () => {
-    try {
-      await fetch("http://127.0.0.1:8080/logout", {
-        method: "GET",
-        credentials: "include"
-      });
-      // after cookie is cleared, redirect to login
-      navigate("/login");
-    } catch (err) {
-      console.error("Logout failed", err);
-    }
-  };
-
   useEffect(() => {
     const run = async () => {
       await fetchidentity();
@@ -130,16 +130,16 @@ export default function HomePage() {
     if (!identity) return;
     switch (identity.role) {
         case "admin":
-        navigate("/adminhome");
+            navigate("/adminhome");
         break;
         case "student":
-        navigate("/studenthome");
+            navigate("/studenthome");
         break;
         case "tutor":
-          navigate("/tutorhome");
+            navigate("/tutorhome");
         break;
         default:
-        navigate("/login");
+            navigate("/login");
         break;
     }
   }, [identity, navigate]);
@@ -155,7 +155,7 @@ export default function HomePage() {
             <Typography 
               variant="h6" 
               sx={{ fontWeight: 600 , cursor: 'pointer'}}
-              onClick={() => navigate ('/adminhome')}
+              onClick={() => navigate ('/')}
             >
               BK Tutor
             </Typography>
@@ -174,7 +174,7 @@ export default function HomePage() {
             </Typography>
             <Typography
               component="a"
-              href="/tutorlist"
+              href="/tutorcalendar"
               sx={{
                 color: 'white',
                 textDecoration: 'none',
@@ -183,7 +183,7 @@ export default function HomePage() {
                 '&:hover': { opacity: 0.8 }
               }}
             >
-              Danh sách giảng viên
+              Lịch
             </Typography>
             <Typography
               component="a"
@@ -209,7 +209,7 @@ export default function HomePage() {
                 '&:hover': { opacity: 0.8 },
               }}
             >
-              Các lớp học
+              Các lớp học của tôi
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 2, marginLeft: 4 }}>
@@ -409,6 +409,12 @@ export default function HomePage() {
                 </Box>
               </Menu>
             </>
+
+            <Typography
+                alignContent="center"
+            >
+                {identity?.name || "Unknown"}
+            </Typography>
 
             <Button
               role="button"

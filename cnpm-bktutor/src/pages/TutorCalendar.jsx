@@ -1,4 +1,14 @@
+//npm install @mui/x-date-pickers date-fns
+//npm install @fullcalendar/react @fullcalendar/daygrid @fullcalendar/timegrid @fullcalendar/interaction
+
 import { useNavigate } from 'react-router-dom';
+import FullCalendar from '@fullcalendar/react'
+import dayGridPlugin from '@fullcalendar/daygrid'
+import timeGridPlugin from '@fullcalendar/timegrid'
+import interactionPlugin from '@fullcalendar/interaction'
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import {
   Container,
   Box,
@@ -10,7 +20,12 @@ import {
   Toolbar,
   IconButton,
   Menu,
-  MenuItem
+  MenuItem,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
 } from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications'
 import MessageIcon from '@mui/icons-material/Message'
@@ -30,6 +45,30 @@ export default function HomePage() {
   const [identity, setIdentity] = useState(null)
   const [loading, setLoading] = useState(false)
 
+  const [events, setEvents] = useState([]);
+  const [open, setOpen] = useState(false);
+
+  // form fields
+  const [title, setTitle] = useState('');
+  const [room, setRoom] = useState('');
+  const [start, setStart] = useState(new Date());
+  const [end, setEnd] = useState(new Date());
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+        await fetch("http://127.0.0.1:8080/logout", {
+        method: "GET",
+        credentials: "include"
+        });
+        // after cookie is cleared, redirect to login
+        navigate("/login");
+    } catch (err) {
+        console.error("Logout failed", err);
+    }
+    };
+
   const fetchidentity = async () => {
     try{
       setLoading(true);
@@ -38,6 +77,7 @@ export default function HomePage() {
         credentials: "include"
       })
       const data = await res.json();
+      console.log(data)
       setIdentity(data);
     } catch (err){
       console.log(err);
@@ -62,6 +102,30 @@ export default function HomePage() {
     }
   };
 
+  const fetchEvents = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch('http://127.0.0.1:8080/api/events', {
+        method: "GET",
+        credentials: "include"
+      })
+      const data = await res.json();
+      const formatted = data.map(ev => ({
+        id: ev.id,
+        title: `${ev.title} (Room ${ev.room})`,
+        start: ev.timestart,
+        end: ev.timeend,
+        room: ev.room
+      }));
+
+      setEvents(formatted);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }
+  
   const handleNotifClick = (event) => {
     setNotifAnchor(event.currentTarget);
     fetchNotifications();
@@ -106,17 +170,54 @@ export default function HomePage() {
     setMessageAnchor(null);
   };
 
-  const handleLogout = async () => {
+  const handleCreateEvent = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setTitle('');
+    setRoom('');
+    setStart(new Date());
+    setEnd(new Date());
+  };
+
+  const handleSave = async () => {
+    const newEvent = {
+      title: `${title} (${room})`,
+      start,
+      end,
+      userid: identity?.selfid || "unknown",
+      room: room,
+      status: "pending",
+      tutorid: identity?.selfid || "unknown"
+    };
+
     try {
-      await fetch("http://127.0.0.1:8080/logout", {
-        method: "GET",
-        credentials: "include"
+      // POST to Flask backend
+      const res = await fetch("http://127.0.0.1:8080/api/create-event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newEvent),
       });
-      // after cookie is cleared, redirect to login
-      navigate("/login");
+
+      const result = await res.json();
+
+      handleClose();
     } catch (err) {
-      console.error("Logout failed", err);
+      console.error("Error saving event:", err);
     }
+  };
+
+  const handleEventClick = (info) => {
+    // info.event contains the clicked event
+    setSelectedEvent({
+      id: info.event.id,
+      title: info.event.title,
+      start: info.event.start,
+      end: info.event.end,
+    });
+    setDetailsOpen(true);
   };
 
   useEffect(() => {
@@ -126,20 +227,27 @@ export default function HomePage() {
     run();
   }, []);
 
+  //fetch events on page loads
+  useEffect(() => {
+    const loadEvents = async () => {
+      await fetchEvents();
+    };
+    loadEvents();
+  }, []);
+
   useEffect(() => {
     if (!identity) return;
     switch (identity.role) {
         case "admin":
-        navigate("/adminhome");
+            navigate("/adminhome");
         break;
         case "student":
-        navigate("/studenthome");
+            navigate("/studenthome");
         break;
         case "tutor":
-          navigate("/tutorhome");
         break;
         default:
-        navigate("/login");
+            navigate("/login");
         break;
     }
   }, [identity, navigate]);
@@ -150,68 +258,82 @@ export default function HomePage() {
       {/* Header Navigation */}
       <AppBar className="header-nav">
         <Toolbar>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexGrow: 1 }}>
-            <img src="/bk-logo.png" alt="BK Logo" style={{ width: 50, height: 50, cursor: 'pointer' }} onClick={() => navigate('/adminhome')}/>
-            <Typography 
-              variant="h6" 
-              sx={{ fontWeight: 600 , cursor: 'pointer'}}
-              onClick={() => navigate ('/adminhome')}
-            >
-              BK Tutor
-            </Typography>
-            <Typography
-              component="a"
-              href="#"
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexGrow: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2}}>
+                <img src="/bk-logo.png" alt="BK Logo" style={{ width: 50, height: 50, cursor: 'pointer' }} onClick={() => navigate('/adminhome')}/>
+                <Typography 
+                variant="h6" 
+                sx={{ fontWeight: 600 , cursor: 'pointer'}}
+                onClick={() => navigate ('/tutorhomepage')}
+                >
+                BK Tutor
+                </Typography>
+                <Typography
+                component="a"
+                href="localhost:5173/tutorhomepage"
+                sx={{
+                    color: 'white',
+                    textDecoration: 'none',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    '&:hover': { opacity: 0.8 },
+                }}
+                >
+                Trang chủ
+                </Typography>
+            </Box>
+            <Box
               sx={{
-                color: 'white',
-                textDecoration: 'none',
-                fontWeight: 500,
-                cursor: 'pointer',
-                '&:hover': { opacity: 0.8 },
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                backgroundColor: '#181b4e', // darker background
+                borderRadius: 1,
+                px: 2,
+                py: 0.5,
               }}
             >
-              Trang chủ
-            </Typography>
-            <Typography
-              component="a"
-              href="/tutorlist"
-              sx={{
-                color: 'white',
-                textDecoration: 'none',
-                fontWeight: 500,
-                cursor: 'pointer',
-                '&:hover': { opacity: 0.8 }
-              }}
-            >
-              Danh sách giảng viên
-            </Typography>
-            <Typography
-              component="a"
-              href="http://localhost:5173/subjectlist"
-              sx={{
-                color: 'white',
-                textDecoration: 'none',
-                fontWeight: 500,
-                cursor: 'pointer',
-                '&:hover': { opacity: 0.8 },
-              }}
-            >
-              Tài liệu
-            </Typography>
-            <Typography
-              component="a"
-              href="#"
-              sx={{
-                color: 'white',
-                textDecoration: 'none',
-                fontWeight: 500,
-                cursor: 'pointer',
-                '&:hover': { opacity: 0.8 },
-              }}
-            >
-              Các lớp học
-            </Typography>
+              <Typography
+                sx={{
+                  color: 'white',
+                  textDecoration: 'none',
+                  fontWeight: 600,
+                }}
+              >
+                Lịch
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2}}>
+                <Typography
+                component="a"
+                href="https://localhost:5173/subjectlist"
+                sx={{
+                    color: 'white',
+                    textDecoration: 'none',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    '&:hover': { opacity: 0.8 },
+                }}
+                >
+                Tài liệu
+                </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2}}>
+                <Typography
+                component="a"
+                href="#"
+                sx={{
+                    color: 'white',
+                    textDecoration: 'none',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    '&:hover': { opacity: 0.8 },
+                }}
+                >
+                Các lớp học của tôi
+                </Typography>
           </Box>
+        </Box>
           <Box sx={{ display: 'flex', gap: 2, marginLeft: 4 }}>
             <>
               <IconButton
@@ -410,6 +532,12 @@ export default function HomePage() {
               </Menu>
             </>
 
+            <Typography
+                alignContent="center"
+            >
+                {identity?.name || "Unknown"}
+            </Typography>
+
             <Button
               role="button"
               sx={{ backgroundColor: 'white', color: '#0099ff', fontWeight: 600 }}
@@ -420,123 +548,83 @@ export default function HomePage() {
           </Box>
         </Toolbar>
       </AppBar>
+      <Container maxWidth="lg" sx={{ mt: 10 }}>
+        <Button
+            variant="contained"
+            color="primary"
+            sx={{ mb: 2 }}
+            onClick={handleCreateEvent}
+            >
+            Tạo buổi học
+        </Button>
+        <Dialog open={open} onClose={handleClose}>
+            <DialogTitle>Create New Event</DialogTitle>
+            <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+                <TextField
+                label="Tên buổi gặp"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                fullWidth
+                />
+                <TextField
+                label="Phòng học"
+                value={room}
+                onChange={(e) => setRoom(e.target.value)}
+                fullWidth
+                />
 
-      {/* Hero Section */}
-      <Box className="hero-section" sx={{ pt: 8, position: 'relative', zIndex: 2 }}>
-        <Box className="hero-overlay"></Box>
-        <Container maxWidth="lg" spacing={4}>
-          <Grid container spacing={4} alignItems="center" sx={{ minHeight: 500}}>
-            <Grid item xs={12} md={6}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                <Box
-                  sx={{
-                    background: 'white',
-                    padding: 1,
-                    borderRadius: 2,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <img
-                    src="/bk-logo.png"
-                    alt="BK Logo"
-                    style={{ width: 80, height: 80 }}
-                  />
-                </Box>
-              </Box>
-              <Typography
-                variant="h3"
-                sx={{
-                  fontWeight: 700,
-                  color: 'white',
-                  mb: 2,
-                  textShadow: '2px 2px 4px rgba(0,0,0,0.2)',
-                }}
-              >
-                BK Tutor Program
-              </Typography>
-              <Typography
-                variant="h5"
-                sx={{
-                  color: '#e0e7ff',
-                  fontWeight: 500,
-                }}
-              >
-                TRƯỜNG ĐẠI HỌC BÁCH KHOA
-              </Typography>
-            </Grid>
-            <Grid item xs={12} md={6} >
-              <Box
-                component="img"
-                src="/team-background.jpg"
-                alt="BK Tutor Team"
-                sx={{
-                  width: '100%',
-                  objectFit: 'cover',
-                  borderRadius: 2,
-                  opacity: 0.95,
-                }}
-              />
-            </Grid>
-          </Grid>
-        </Container>
-      </Box>
-
-      {/* Introduction Section */}
-      <Container maxWidth="lg">
-        <Paper
-          elevation={2}
-          sx={{
-            p: 5,
-            mt: 5,
-            mb: 5,
-            backgroundColor: 'white',
-            borderRadius: 2,
-          }}
-        >
-          <Typography
-            variant="h4"
-            sx={{
-              color: '#0099ff',
-              fontWeight: 600,
-              mb: 4,
+                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <DateTimePicker
+                    label="Giờ bắt đầu"
+                    value={start}
+                    onChange={(newValue) => setStart(newValue)}
+                />
+                <DateTimePicker
+                    label="Giờ kết thúc"
+                    value={end}
+                    onChange={(newValue) => setEnd(newValue)}
+                />
+                </LocalizationProvider>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={handleClose}>Cancel</Button>
+                <Button onClick={handleSave} variant="contained" disabled={!identity}>
+                Save
+                </Button>
+            </DialogActions>
+        </Dialog>
+        <FullCalendar
+            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+            initialView="dayGridMonth"
+            headerToolbar={{
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
             }}
-          >
-            Giới thiệu:
-          </Typography>
-
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Typography
-              variant="body1"
-              sx={{
-                fontSize: '1.05rem',
-                lineHeight: 1.8,
-                color: '#333',
-                textAlign: 'justify',
-              }}
-            >
-              BK Tutor Program là hệ thống hỗ trợ quản lý chương trình Tutor-Mentor tại
-              Trường Đại học Bách Khoa – ĐHQG TP.HCM (HCMUT), được thiết kế nhằm nâng
-              cao hiệu quả học tập và phát triển kỹ năng cho sinh viên.
-            </Typography>
-
-            <Typography
-              variant="body1"
-              sx={{
-                fontSize: '1.05rem',
-                lineHeight: 1.8,
-                color: '#333',
-                textAlign: 'justify',
-              }}
-            >
-              BK Tutor Program hướng đến một môi trường học tập hiệu dạt, thân thiện
-              và đề mở rộng, góp phần nâng cao chất lượng đào tạo và trải nghiệm học
-              tập của sinh viên.
-            </Typography>
-          </Box>
-        </Paper>
-      </Container>
+            events={events}
+            editable={false}
+            selectable={false}
+            eventClick={(info) => handleEventClick(info)}
+            height={600}
+        />
+        <Dialog open={detailsOpen} onClose={() => setDetailsOpen(false)}>
+          <DialogTitle>Event Details</DialogTitle>
+          <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {selectedEvent && (
+              <>
+                <Typography><strong>Title:</strong> {selectedEvent.title}</Typography>
+                <Typography><strong>Start:</strong> {selectedEvent.start.toLocaleString()}</Typography>
+                <Typography><strong>End:</strong> {selectedEvent.end?.toLocaleString()}</Typography>
+                <Typography><strong>Room:</strong> {selectedEvent.room}</Typography>
+                <Typography><strong>Tutor:</strong> {selectedEvent.tutorid}</Typography>
+              </>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDetailsOpen(false)}>Close</Button>
+          </DialogActions>
+        </Dialog>
+        </Container>
     </Box>
   );
 }

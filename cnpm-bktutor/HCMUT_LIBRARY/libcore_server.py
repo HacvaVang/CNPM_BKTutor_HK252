@@ -14,6 +14,7 @@ app.add_middleware(
 )
 
 DATA_FILE = "data/materials.csv"
+USER_FILE = "data/user_info.csv"
 
 def load_data():
     with open(DATA_FILE, newline='', encoding='utf-8') as file:
@@ -99,4 +100,41 @@ def get_materials(subject_code: str):
 
     return grouped
 
-# use: uvicorn material_server:app --reload --port 7999
+def load_users():
+    with open(USER_FILE, newline='', encoding='utf-8') as file:
+        return [
+            {k: v.strip() if v else "" for k, v in row.items()}
+            for row in csv.DictReader(file)
+        ]
+
+@app.get("/user")
+def get_user(user_id: str):
+    users = load_users()
+
+    for row in users:
+        if row["User_ID"] == user_id:
+            return {
+                "user_id": user_id,
+                "name": row.get("Name", ""),
+                "status": row.get("Status", ""),
+                "role": row.get("Role", ""),
+                "major": row.get("Major", "")  
+            }
+
+    return {
+        "user_id": user_id,
+        "name": "Không tìm thấy",
+        "status": "",
+        "role": "",
+        "major": ""
+    }
+
+@app.get("/user/full")
+def get_user_full(user_id: str):
+    users = load_users()
+    for row in users:
+        if row["User_ID"] == user_id:
+            return row  # return the full row
+    return {"User_ID": user_id, "Name": "Không tìm thấy"}
+
+# use: uvicorn libcore_server:app --reload --port 7999
