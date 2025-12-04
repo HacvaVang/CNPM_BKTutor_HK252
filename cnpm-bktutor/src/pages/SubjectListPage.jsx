@@ -112,7 +112,7 @@ export default function SubjectListPage() {
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           {displaySubjects.length > 0 ? (
             displaySubjects.map((s, idx) => (
-              <Paper key={idx} elevation={2} onClick={() => navigate(`/subjectmaterial/${s.subject_code.trim()}`)}
+              <Paper key={idx} elevation={2} onClick={() => navigate(`/subjectmaterial/?subjectid=${s.subject_code.trim()}`)}
                 sx={{ p: 3, borderRadius: 3, cursor: "pointer", transition: "all 0.2s", "&:hover": { boxShadow: 6, transform: "translateY(-2px)" } }}>
                 <Typography variant="h6" sx={{ color: "#0099ff", fontWeight: 500, fontStyle: "italic", textAlign: "left" }}>
                   {s.subject_name} ({s.subject_code})
