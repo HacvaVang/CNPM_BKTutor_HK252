@@ -278,7 +278,7 @@ def unsubscribe_session(eventid):
                 if not (row["eventid"] == eventid and row["userid"] == str(key)):
                     keep.append(row)
         with open("events.csv", "w", newline="", encoding="utf-8") as csvfile:
-            writer = csv.DictWriter(csvfile, ["eventid", "title", "userid", "date", "timestart", "timeend", "room", "status", "tutorid"])
+            writer = csv.DictWriter(csvfile, ["eventid", "userid"])
             writer.writeheader()
             writer.writerows(keep)
     except FileNotFoundError:
