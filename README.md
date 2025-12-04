@@ -28,11 +28,13 @@ Mở terminal tại **thư mục gốc của dự án** (nơi có file `package.
 
 ```bash
 npm install          # chỉ chạy lần đầu hoặc khi có thay đổi dependencies
+npm install -D tailwindcss @tailwindcss/vite
 npm run start
 ```
 ### 2. Chạy Server (Backend)
 ```bash
 cd src/services
+pip install -r requirements.txt
 python3 api.py        # Mac/Linux
 # hoặc
 python api.py         # Windows

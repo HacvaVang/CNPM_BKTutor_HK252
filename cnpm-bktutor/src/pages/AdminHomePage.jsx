@@ -187,7 +187,7 @@ export default function HomePage() {
             </Typography>
             <Typography
               component="a"
-              href="https://localhost:5173/subjectlist"
+              href="http://localhost:5173/subjectlist"
               sx={{
                 color: 'white',
                 textDecoration: 'none',

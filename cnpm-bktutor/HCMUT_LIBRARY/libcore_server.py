@@ -113,20 +113,27 @@ def get_user(user_id: str):
 
     for row in users:
         if row["User_ID"] == user_id:
+            print(1)
             return {
                 "user_id": user_id,
                 "name": row.get("Name", ""),
                 "status": row.get("Status", ""),
-                "role": row.get("Role", ""),
-                "major": row.get("Major", "")  
+                "role": row.get("Role", "")
             }
 
     return {
         "user_id": user_id,
         "name": "Không tìm thấy",
         "status": "",
-        "role": "",
-        "major": ""
+        "role": ""
     }
+
+@app.get("/user/full")
+def get_user_full(user_id: str):
+    users = load_users()
+    for row in users:
+        if row["User_ID"] == user_id:
+            return row  # return the full row
+    return {"User_ID": user_id, "Name": "Không tìm thấy"}
 
 # use: uvicorn libcore_server:app --reload --port 7999
