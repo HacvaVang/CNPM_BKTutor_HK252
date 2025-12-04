@@ -309,7 +309,6 @@ def logout():
     # overwrite cookie with empty value and expired date
     resp.set_cookie("session", "", expires=0, httponly=True, samesite="None", secure=True)
     return resp
-
 @app.route("/api/create-event", methods=["POST"])
 def create_event():
     data = request.json

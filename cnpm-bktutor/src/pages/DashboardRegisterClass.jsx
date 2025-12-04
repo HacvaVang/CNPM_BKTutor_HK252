@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 
+import NavigationBar from "../components/navigationbar.jsx"; 
 // URL cơ sở cho API
 const API_BASE_URL = 'http://127.0.0.1:8080';
 const SESSIONS_PER_PAGE = 10; // Giới hạn 10 buổi học mỗi trang
@@ -301,6 +302,10 @@ const App = () => {
     const hasResults = currentSessions.length > 0;
 
     return (
+        <>
+      {/* === THÊM NAVIGATION BAR Ở ĐÂY === */}
+      {/* Prop identity cần được truyền từ state quản lý người dùng thực tế */}
+      <NavigationBar/> 
         <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
             <script src="https://cdn.tailwindcss.com"></script>
 
@@ -400,6 +405,7 @@ const App = () => {
                 </div>
             </div>
         </div>
+        </>
     );
 };
 

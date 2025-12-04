@@ -15,8 +15,12 @@ import {
 import { vi } from "date-fns/locale";
 import clsx from "clsx";
 
+// === 1. IMPORT NAVIGATION BAR TỪ ĐƯỜNG DẪN CUNG CẤP ===
+import NavigationBar from "../components/navigationbar.jsx"; 
+
+
 // =======================================================================
-// === 1. COMPONENTS POP-UP ĐÃ CẬP NHẬT (THÊM GIẢNG VIÊN) ===
+// === 2. COMPONENTS POP-UP ĐÃ CẬP NHẬT (THÊM GIẢNG VIÊN) ===
 // =======================================================================
 
 // --- Pop-up Chi tiết Sự kiện ---
@@ -121,7 +125,7 @@ const AllEventsPopup = ({ day, events, onClose }) => {
 
 
 // =======================================================================
-// === 2. COMPONENTS PHỤ ĐÃ CẬP NHẬT ===
+// === 3. COMPONENTS PHỤ ĐÃ CẬP NHẬT ===
 // =======================================================================
 
 const CalendarHeader = ({ currentDate, changeMonth, locale }) => {
@@ -241,7 +245,7 @@ const CalendarCells = ({ calendarData, currentDate, today, events, openDetailPop
 };
 
 // =======================================================================
-// === 3. COMPONENT CHÍNH ĐÃ CẬP NHẬT LOGIC FETCH ===
+// === 4. COMPONENT CHÍNH ĐÃ CẬP NHẬT LOGIC FETCH VÀ THÊM NAV BAR ===
 // =======================================================================
 export default function CalendarPage() {
   const [events, setEvents] = useState([]);
@@ -376,52 +380,60 @@ export default function CalendarPage() {
     setCurrentDate(addMonths(currentDate, dir));
   };
 
+
+
   return (
-    <div className="bg-gray-50 min-h-screen p-8">
-      <h1 className="text-4xl font-extrabold text-blue-700 mb-8 text-center">Lịch Học Tập</h1>
-
-      <div className="max-w-7xl mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden border-4 border-purple-500">
-        <CalendarHeader currentDate={currentDate} changeMonth={changeMonth} locale={vi} />
-        
-        <div>
-          <CalendarDaysHeader />
-
-          {/* Hiển thị trạng thái tải/lỗi/không có dữ liệu */}
-          {loading && (
-            <div className="p-16 text-center text-xl text-gray-600">Đang tải lịch học...</div>
-          )}
-          {error && (
-            <div className="p-16 text-center text-xl text-red-600 bg-red-50">{error}</div>
-          )}
-          {!loading && !error && events.length === 0 && (
-            <div className="p-16 text-center text-xl text-gray-500">Không có lịch học nào sắp tới.</div>
-          )}
-
-          {/* Hiển thị lưới lịch */}
-          {!loading && !error && (
-            <CalendarCells
-              calendarData={calendarData}
-              currentDate={currentDate}
-              today={today}
-              events={events}
-              openDetailPopup={openDetailPopup} // Truyền hàm mở pop-up chi tiết
-              openAllEventsPopup={openAllEventsPopup} // Truyền hàm mở pop-up tất cả
-            />
-          )}
-        </div>
-      </div>
-
-      {/* HIỂN THỊ POP-UP CHI TIẾT SỰ KIỆN */}
-      <EventDetailPopup event={selectedEvent} onClose={closeDetailPopup} />
+    <>
+      {/* === THÊM NAVIGATION BAR Ở ĐÂY === */}
+      {/* Prop identity cần được truyền từ state quản lý người dùng thực tế */}
+      <NavigationBar/> 
       
-      {/* HIỂN THỊ POP-UP TẤT CẢ SỰ KIỆN TRONG NGÀY */}
-      {allEventsPopupData && (
-        <AllEventsPopup
-          day={allEventsPopupData.day}
-          events={allEventsPopupData.events}
-          onClose={closeAllEventsPopup}
-        />
-      )}
-    </div>
+      <div className="bg-gray-50 min-h-screen p-8 pt-[64px]"> {/* Thêm padding top để tránh NavigationBar che mất nội dung */}
+        <h1 className="text-4xl font-extrabold text-blue-700 mb-8 text-center">Lịch Học Tập</h1>
+
+        <div className="max-w-7xl mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden border-4 border-purple-500">
+          <CalendarHeader currentDate={currentDate} changeMonth={changeMonth} locale={vi} />
+          
+          <div>
+            <CalendarDaysHeader />
+
+            {/* Hiển thị trạng thái tải/lỗi/không có dữ liệu */}
+            {loading && (
+              <div className="p-16 text-center text-xl text-gray-600">Đang tải lịch học...</div>
+            )}
+            {error && (
+              <div className="p-16 text-center text-xl text-red-600 bg-red-50">{error}</div>
+            )}
+            {!loading && !error && events.length === 0 && (
+              <div className="p-16 text-center text-xl text-gray-500">Không có lịch học nào sắp tới.</div>
+            )}
+
+            {/* Hiển thị lưới lịch */}
+            {!loading && !error && (
+              <CalendarCells
+                calendarData={calendarData}
+                currentDate={currentDate}
+                today={today}
+                events={events}
+                openDetailPopup={openDetailPopup} // Truyền hàm mở pop-up chi tiết
+                openAllEventsPopup={openAllEventsPopup} // Truyền hàm mở pop-up tất cả
+              />
+            )}
+          </div>
+        </div>
+
+        {/* HIỂN THỊ POP-UP CHI TIẾT SỰ KIỆN */}
+        <EventDetailPopup event={selectedEvent} onClose={closeDetailPopup} />
+        
+        {/* HIỂN THỊ POP-UP TẤT CẢ SỰ KIỆN TRONG NGÀY */}
+        {allEventsPopupData && (
+          <AllEventsPopup
+            day={allEventsPopupData.day}
+            events={allEventsPopupData.events}
+            onClose={closeAllEventsPopup}
+          />
+        )}
+      </div>
+    </>
   );
 }
