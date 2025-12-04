@@ -1,6 +1,6 @@
-import { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
+  Container,
   Box,
   Typography,
   Grid,
@@ -36,210 +36,145 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    if (identity?.selfid) {
-      fetch(`http://127.0.0.1:7999/user/full?user_id=${identity.selfid}`)
-        .then((r) => r.json())
-        .then((d) => {
-          if (d && d.Name && d.Name !== 'Không tìm thấy') setUser(d);
-        })
-        .catch(() => {});
+    if (!identity) return;
+    switch (identity.role) {
+        case "admin":
+            navigate("/adminhome");
+        break;
+        case "student":
+            navigate("/studenthome");
+        break;
+        case "tutor":
+            navigate("/tutorhome");
+        break;
+        default:
+            navigate("/login");
+        break;
     }
-  }, [identity]);
+  }, [identity, navigate]);
 
-  const exampleUser = {
-    Code: '231038',
-    Name: 'TRẦN LÊ ĐỨC AN',
-    Birthday: '12/12/2005',
-    Phone_number: '0915485455',
-    Email: 'an.tranle@hcmut.edu.vn',
-    Email_backup: 'quaktoong@gmail.com',
-    Major: 'Khoa Khoa học và Kỹ thuật Máy tính',
-    'Ngành/Chuyên ngành': 'Khoa học Máy tính',
-    'Thời điểm nhập học': '08/2023',
-    'Năm CTĐT': '2023',
-    'Buổi học/giảng dạy': 'Sáng',
-    'Cơ sở': 'Cơ sở 2',
-  };
 
-  const displayUser = user || exampleUser;
-  const nameParts = displayUser.Name ? displayUser.Name.trim().split(' ') : [];
-  const firstName = nameParts.length ? nameParts.pop() : 'AN';
-  const lastName = nameParts.join(' ') || 'TRẦN LÊ ĐỨC';
-
-  // -----------------------------------------------------------------
-  //  Render
-  // -----------------------------------------------------------------
   return (
     <Box className="home-page" sx={{width:'100vw', height:'100vh'}}>
       {/* Header Navigation */}
       <NavigationBar/>
 
-      {/* ====================== BACK BUTTON (inside content) ====================== */}
-      <Box sx={{ px: { xs: 2, md: 4 }, pt: 3 }}>
-        <Button startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)}>
-          Trở về trang trước
-        </Button>
-      </Box>
-
-      {/* ====================== USER INFO CARD ====================== */}
-      <Box sx={{ maxWidth: 1400, mx: 'auto', px: { xs: 2, md: 4 }, pt: 2 }}>
-        <Paper elevation={10} sx={{ borderRadius: 3, overflow: 'hidden' }}>
-          {/* Top blue section */}
-          <Box
-            sx={{
-              bgcolor: 'linear-gradient(135deg, #0066cc 0%, #004499 100%)',
-              color: 'white',
-              p: { xs: 4, md: 7 },
-            }}
-          >
-            <Grid container spacing={5} alignItems="center">
-              <Grid item>
-                <Avatar
+      {/* Hero Section */}
+      <Box className="hero-section" sx={{ pt: 8, position: 'relative', zIndex: 2 }}>
+        <Box className="hero-overlay"></Box>
+        <Container maxWidth="lg" spacing={4}>
+          <Grid container spacing={4} alignItems="center" sx={{ minHeight: 500}}>
+            <Grid item xs={12} md={6}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                <Box
                   sx={{
-                    width: 180,
-                    height: 180,
-                    bgcolor: 'white',
-                    color: '#0066cc',
-                    fontSize: 80,
-                    fontWeight: 'bold',
-                    border: '12px solid white',
-                    boxShadow: '0 8px 25px rgba(0,0,0,0.3)',
+                    background: 'white',
+                    padding: 1,
+                    borderRadius: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                 >
-                  {firstName.charAt(0).toUpperCase()}
-                </Avatar>
-              </Grid>
-
-              <Grid item xs>
-                <Grid container spacing={3}>
-                  {[
-                    { label: 'Mã số sinh viên', value: displayUser.Code, big: true },
-                    { label: 'Họ và tên lót', value: lastName },
-                    { label: 'Tên', value: firstName, big: true },
-                    { label: 'Ngày sinh', value: displayUser.Birthday || '—' },
-                  ].map((i) => (
-                    <Grid item xs={6} md={3} key={i.label}>
-                      <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
-                        <Typography variant="subtitle2" sx={{ opacity: 0.9, fontSize: '0.95rem' }}>
-                          {i.label}
-                        </Typography>
-                        <Typography
-                          variant={i.big ? 'h3' : 'h6'}
-                          fontWeight="bold"
-                          sx={{ mt: 0.5, wordBreak: 'break-word' }}
-                        >
-                          {i.value}
-                        </Typography>
-                      </Box>
-                    </Grid>
-                  ))}
-                </Grid>
-              </Grid>
+                  <img
+                    src="/bk-logo.png"
+                    alt="BK Logo"
+                    style={{ width: 80, height: 80 }}
+                  />
+                </Box>
+              </Box>
+              <Typography
+                variant="h3"
+                sx={{
+                  fontWeight: 700,
+                  color: 'white',
+                  mb: 2,
+                  textShadow: '2px 2px 4px rgba(0,0,0,0.2)',
+                }}
+              >
+                BK Tutor Program
+              </Typography>
+              <Typography
+                variant="h5"
+                sx={{
+                  color: '#e0e7ff',
+                  fontWeight: 500,
+                }}
+              >
+                TRƯỜNG ĐẠI HỌC BÁCH KHOA
+              </Typography>
             </Grid>
-          </Box>
-
-          {/* Contact */}
-          <Box sx={{ p: { xs: 4, md: 6 } }}>
-            <Typography variant="h6" fontWeight="bold" color="#0066cc" sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
-              <EmailIcon /> Thông tin liên lạc
-            </Typography>
-            <Divider sx={{ mb: 4 }} />
-            <Grid container spacing={4}>
-              {[
-                { icon: <PhoneIcon sx={{ color: '#0066cc' }} />, label: 'Số điện thoại', value: displayUser.Phone_number || '—' },
-                { label: 'Email sinh viên', value: displayUser.Email || '—' },
-                { label: 'Email liên lạc', value: displayUser.Email_backup || '—' },
-                { label: 'Email dự phòng', value: '*' },
-              ].map((i, idx) => (
-                <Grid item xs={12} sm={6} lg={3} key={idx}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, minHeight: 56 }}>
-                    {i.icon ? (
-                      <Box sx={{ width: 40, height: 40, bgcolor: '#e3f2fd', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        {i.icon}
-                      </Box>
-                    ) : (
-                      <Box sx={{ width: 40 }} />
-                    )}
-                    <Box>
-                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.95rem' }}>
-                        {i.label}:
-                      </Typography>
-                      <Typography fontWeight="600" color="#333">
-                        {i.value}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Grid>
-              ))}
+            <Grid item xs={12} md={6} >
+              <Box
+                component="img"
+                src="/team-background.jpg"
+                alt="BK Tutor Team"
+                sx={{
+                  width: '100%',
+                  objectFit: 'cover',
+                  borderRadius: 2,
+                  opacity: 0.95,
+                }}
+              />
             </Grid>
-          </Box>
+          </Grid>
+        </Container>
+      </Box>
 
-          {/* Training info */}
-          <Box sx={{ p: { xs: 4, md: 6 }, bgcolor: '#f8fbff' }}>
-            <Typography variant="h6" fontWeight="bold" color="#0066cc" sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
-              <SchoolIcon /> Thông tin đào tạo
-            </Typography>
-            <Divider sx={{ mb: 4 }} />
-            <Grid container spacing={4}>
-              {[
-                { label: 'Khoa', value: displayUser.Major },
-                { label: 'Ngành/Chuyên ngành', value: displayUser['Ngành/Chuyên ngành'] },
-                { label: 'Thời điểm nhập học', value: displayUser['Thời điểm nhập học'] },
-                { label: 'Năm CTĐT', value: displayUser['Năm CTĐT'] },
-                { label: 'Buổi học/giảng dạy', value: displayUser['Buổi học/giảng dạy'] },
-                { label: 'Cơ sở', value: displayUser['Cơ sở'] },
-              ].map((i) => (
-                <Grid item xs={12} sm={6} md={4} key={i.label}>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.95rem' }}>
-                      {i.label}
-                    </Typography>
-                    <Typography fontWeight="600" color="#333" sx={{ fontSize: '1.1rem' }}>
-                      {i.value || '—'}
-                    </Typography>
-                  </Box>
-                </Grid>
-              ))}
-            </Grid>
-          </Box>
+      {/* Introduction Section */}
+      <Container maxWidth="lg">
+        <Paper
+          elevation={2}
+          sx={{
+            p: 5,
+            mt: 5,
+            mb: 5,
+            backgroundColor: 'white',
+            borderRadius: 2,
+          }}
+        >
+          <Typography
+            variant="h4"
+            sx={{
+              color: '#0099ff',
+              fontWeight: 600,
+              mb: 4,
+            }}
+          >
+            Giới thiệu:
+          </Typography>
 
-          {/* Status */}
-          <Box sx={{ p: { xs: 4, md: 6 } }}>
-            <Typography variant="h6" fontWeight="bold" color="#0066cc" sx={{ mb: 3 }}>
-              Tình trạng học tập
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Typography
+              variant="body1"
+              sx={{
+                fontSize: '1.05rem',
+                lineHeight: 1.8,
+                color: '#333',
+                textAlign: 'justify',
+              }}
+            >
+              BK Tutor Program là hệ thống hỗ trợ quản lý chương trình Tutor-Mentor tại
+              Trường Đại học Bách Khoa – ĐHQG TP.HCM (HCMUT), được thiết kế nhằm nâng
+              cao hiệu quả học tập và phát triển kỹ năng cho sinh viên.
             </Typography>
-            <Divider sx={{ mb: 3 }} />
-            <Typography fontWeight="600" color="success.main" fontSize="1.1rem">
-              Sinh viên đang học – Active
-            </Typography>
-          </Box>
 
-          {/* Note */}
-          <Box sx={{ p: { xs: 4, md: 6 }, bgcolor: '#f8fbff' }}>
-            <Typography variant="h6" fontWeight="bold" color="#0066cc" sx={{ mb: 3 }}>
-              Ghi chú
-            </Typography>
-            <Divider sx={{ mb: 3 }} />
-            <Typography color="text.secondary" fontStyle="italic">
-              —
+            <Typography
+              variant="body1"
+              sx={{
+                fontSize: '1.05rem',
+                lineHeight: 1.8,
+                color: '#333',
+                textAlign: 'justify',
+              }}
+            >
+              BK Tutor Program hướng đến một môi trường học tập hiệu dạt, thân thiện
+              và đề mở rộng, góp phần nâng cao chất lượng đào tạo và trải nghiệm học
+              tập của sinh viên.
             </Typography>
           </Box>
         </Paper>
-      </Box>
+      </Container>
     </Box>
   );
 }
-
-/* ---------- reusable small styles ---------- */
-const navLinkStyle = {
-  color: 'white',
-  textDecoration: 'none',
-  fontWeight: 500,
-  cursor: 'pointer',
-  '&:hover': { opacity: 0.8 },
-};
-const iconBtnStyle = {
-  color: '#919090ff',
-  minWidth: 'auto',
-  '&:hover': { opacity: 0.8 },
-};
