@@ -112,7 +112,7 @@ export default function HomePage() {
       const data = await res.json();
       const formatted = data.map(ev => ({
         id: ev.id,
-        title: `${ev.title} (Room ${ev.room})`,
+        title: `${ev.title}`,
         start: ev.timestart,
         end: ev.timeend,
         room: ev.room
@@ -184,7 +184,7 @@ export default function HomePage() {
 
   const handleSave = async () => {
     const newEvent = {
-      title: `${title} (${room})`,
+      title: `${title}`,
       start,
       end,
       userid: identity?.selfid || "unknown",
@@ -203,7 +203,19 @@ export default function HomePage() {
 
       const result = await res.json();
 
-      handleClose();
+      if (result.success === false){
+        if (result.ErrorCode === "1"){
+          alert("Thời gian buổi học không hợp lệ!");
+        }
+        else if (result.ErrorCode === "2"){
+          alert("Phòng học bận")
+        }
+        else if (result.ErrorCode === "3"){
+          alert("Không có phòng này hoặc không có quyền sử dụng phòng này")
+        }
+      } else {
+        handleClose();
+      }
     } catch (err) {
       console.error("Error saving event:", err);
     }
@@ -216,6 +228,8 @@ export default function HomePage() {
       title: info.event.title,
       start: info.event.start,
       end: info.event.end,
+      room: info.event.extendedProps.room,
+      tutor: info.event.extendedProps.tutor
     });
     setDetailsOpen(true);
   };
@@ -254,7 +268,7 @@ export default function HomePage() {
 
 
   return (
-    <Box className="home-page" sx={{width:'100vw', height:'100vh'}}>
+    <Box className="home-page" sx={{display: 'flex', width:'100vw', height:'100vh'}}>
       {/* Header Navigation */}
       <AppBar className="header-nav">
         <Toolbar>
@@ -548,7 +562,7 @@ export default function HomePage() {
           </Box>
         </Toolbar>
       </AppBar>
-      <Container maxWidth="lg" sx={{ mt: 10 }}>
+      <Container maxWidth="lg" sx={{ mt: 10 }} height='100vh'>
         <Button
             variant="contained"
             color="primary"
@@ -624,7 +638,7 @@ export default function HomePage() {
             <Button onClick={() => setDetailsOpen(false)}>Close</Button>
           </DialogActions>
         </Dialog>
-        </Container>
+      </Container>
     </Box>
   );
 }

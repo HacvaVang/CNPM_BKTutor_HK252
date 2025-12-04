@@ -200,7 +200,7 @@ export default function HomePage() {
             </Typography>
             <Typography
               component="a"
-              href="#"
+              onClick={() => navigate("/tutorclass")}
               sx={{
                 color: 'white',
                 textDecoration: 'none',
@@ -209,7 +209,7 @@ export default function HomePage() {
                 '&:hover': { opacity: 0.8 },
               }}
             >
-              Các lớp học của tôi
+              Lớp của tôi
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 2, marginLeft: 4 }}>
@@ -412,6 +412,11 @@ export default function HomePage() {
 
             <Typography
                 alignContent="center"
+                onClick={() => navigate("/userinfo")}
+                sx={{
+                  cursor: 'pointer',
+                  '&:hover': { opacity: 0.8 },
+                }}
             >
                 {identity?.name || "Unknown"}
             </Typography>
