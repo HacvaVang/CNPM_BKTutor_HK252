@@ -32,7 +32,7 @@ export default function HomePage() {
 
   const handleLogout = async () => {
     try {
-        await fetch("http://127.0.0.1:8080/logout", {
+        await fetch("http://localhost:8080/logout", {
         method: "GET",
         credentials: "include"
         });
@@ -46,7 +46,7 @@ export default function HomePage() {
   const fetchidentity = async () => {
     try{
       setLoading(true);
-      const res = await fetch('http://127.0.0.1:8080/api/identity', {
+      const res = await fetch('http://localhost:8080/api/identity', {
         method: "GET",
         credentials: "include"
       })
@@ -62,7 +62,7 @@ export default function HomePage() {
   const fetchNotifications = async () => {
     try {
       setLoading(true);
-      const res = await fetch('http://127.0.0.1:8080/api/notifications', {
+      const res = await fetch('http://localhost:8080/api/notifications', {
         method: "GET",
         credentials: "include"
       })
@@ -88,7 +88,7 @@ export default function HomePage() {
   const fetchMessages = async () => {
     try {
       setLoading(true);
-      const res = await fetch('http://127.0.0.1:8080/api/messages', {
+      const res = await fetch('http://localhost:8080/api/messages', {
         method: "GET",
         credentials: "include"
       })

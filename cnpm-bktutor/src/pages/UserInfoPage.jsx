@@ -37,7 +37,7 @@ export default function UserInfoPage() {
 
   const handleLogout = async () => {
     try {
-      await fetch('http://127.0.0.1:8080/logout', {
+      await fetch('http://localhost:8080/logout', {
         method: 'GET',
         credentials: 'include',
       });
@@ -50,7 +50,7 @@ export default function UserInfoPage() {
   const fetchNotifications = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://127.0.0.1:8080/api/notifications', {
+      const res = await fetch('http://localhost:8080/api/notifications', {
         credentials: 'include',
       });
       const data = await res.json();
@@ -65,7 +65,7 @@ export default function UserInfoPage() {
   const fetchMessages = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://127.0.0.1:8080/api/messages', {
+      const res = await fetch('http://localhost:8080/api/messages', {
         credentials: 'include',
       });
       const data = await res.json();

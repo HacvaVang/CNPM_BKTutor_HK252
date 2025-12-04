@@ -273,7 +273,7 @@ export default function CalendarPage() {
           setError(null);
   
           // 1. FETCH DANH SÁCH SỰ KIỆN GỐC
-          const eventsResponse = await fetch("http://127.0.0.1:8080/api/events", {
+          const eventsResponse = await fetch("http://localhost:8080/api/events", {
             method: "GET",
             credentials: "include", // bắt buộc vì backend kiểm tra session cookie
           });
@@ -299,7 +299,7 @@ export default function CalendarPage() {
 
             try {
                 // Fetch tên giảng viên từ API user
-                const userResponse = await fetch(`http://127.0.0.1:8080/api/user?id=${tutorId}`, {
+                const userResponse = await fetch(`http://localhost:8080/api/user?id=${tutorId}`, {
                     method: "GET",
                     credentials: "include",
                 });

@@ -16,7 +16,7 @@ export default function HomePage() {
   const fetchidentity = async () => {
     try{
       setLoading(true);
-      const res = await fetch('http://127.0.0.1:8080/api/identity', {
+      const res = await fetch('http://localhost:8080/api/identity', {
         method: "GET",
         credentials: "include"
       })
