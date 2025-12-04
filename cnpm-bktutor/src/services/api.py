@@ -3,6 +3,7 @@ from flask_cors import CORS
 import csv, uuid
 import json
 import requests
+from datetime import datetime
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True, origins=["http://localhost:5173"])
@@ -179,6 +180,51 @@ def read_events(all=False):
         return events
     except FileNotFoundError:
         return []
+    
+def fetch_sessions():
+    cookie_val = session_validate()
+    if cookie_val is None:
+        return []
+    
+    key = cookie_val["user_id"]
+    sessions = []
+    room_map = {}
+    session_map = {}
+    try:
+        #get room cap
+        with open("roomcapacity.csv", newline="", encoding="utf-8") as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                room_map[row["room"]] = row["capacity"]
+
+        #map event with current joined
+        with open("events.csv", newline="", encoding="utf-8") as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                if session_map.get(row["eventid"]) is None:
+                    session_map[row["eventid"]] = 1
+                else:
+                    session_map[row["eventid"]] += 1
+
+        with open("sessions.csv", newline="", encoding="utf-8") as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                if row["tutorid"] == str(key) and row["status"] == "upcoming":
+                    sessions.append({
+                        "sessionid": row["eventid"],
+                        "room": row["room"],
+                        "capacity": room_map[row["room"]],
+                        "joined": session_map.get(row["eventid"]) if session_map.get(row["eventid"]) is not None else 0,
+                        "title": row["title"],
+                        "timestart": row["timestart"],
+                        "timeend": row["timeend"]
+                    })
+            
+            return sessions
+
+    except FileNotFoundError:
+        return []
+        
 
 #set cookie for error checking (gonna delete later)
 @app.route("/set-cookie")
@@ -189,8 +235,7 @@ def set_cookie():
         "exp": 1764492775, # Thời gian hết hạn (Unix timestamp)
         "iat": 1764406375, # Thời gian tạo (Issued At)
         "jti": "93e37f741c954dcdb9ba07de80fbbb71", # ID token duy nhất
-        "user_id": 1,
-        "role": "tutor"
+        "user_id": 6
     })
     resp.set_cookie("session", cookie_value, httponly=True, samesite="None", secure=True)
 
@@ -241,6 +286,7 @@ def get_events():
 def get_sessions():
     data = read_events(all=True)
     return jsonify(data)
+
 @app.route("/api/sessions/<eventid>", methods=["POST"])
 def subscribe_session(eventid):
     cookie_val = session_validate()
@@ -261,6 +307,7 @@ def subscribe_session(eventid):
             writer.writeheader()
         writer.writerow(row)
     return jsonify({"status": "subscribed"})
+
 @app.route("/api/sessions/<eventid>", methods=["DELETE"])
 def unsubscribe_session(eventid):
     cookie_val = session_validate()
@@ -284,6 +331,7 @@ def unsubscribe_session(eventid):
     except FileNotFoundError:
         pass
     return jsonify({"status": "unsubscribed"})
+
 @app.route("/logout")
 def logout():
     #delete entry in ticket.csv
@@ -309,12 +357,13 @@ def logout():
     # overwrite cookie with empty value and expired date
     resp.set_cookie("session", "", expires=0, httponly=True, samesite="None", secure=True)
     return resp
+
 @app.route("/api/create-event", methods=["POST"])
 def create_event():
     data = request.json
     eventid = str(uuid.uuid4())
 
-    row = {
+    new_row = {
         "eventid": eventid,
         "title": data.get("title", ""),
         "userid": data.get("userid", ""),
@@ -322,17 +371,85 @@ def create_event():
         "timestart": data.get("start", ""),
         "timeend": data.get("end", ""),
         "room": data.get("room", ""),
-        "status": data.get("status", "scheduled"),
+        "status": data.get("status", "pending"),
         "tutorid": data.get("userid", "")
     }
 
-    with open("events.csv", "a", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=row.keys())
+    #check for time overlap
+    room_map = {}
+    with open("roomcapacity.csv", newline="", encoding="utf-8") as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            room_map[row["room"]] = row["capacity"]
+
+    with open("sessions.csv", newline="", encoding="utf-8") as csvfile:
+        fmt = "%Y-%m-%dT%H:%M:%S.%fZ"
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            if row["room"] == new_row["room"]:
+                s1 = datetime.strptime(row["timestart"], fmt)
+                e1 = datetime.strptime(row["timeend"], fmt)
+                s2 = datetime.strptime(new_row["timestart"], fmt)
+                e2 = datetime.strptime(new_row["timeend"], fmt)
+
+                if s2 > e2:
+                    return jsonify({"success": False, "ErrorCode": "1"})
+                elif s2 < e1 and e2 > s1:
+                    return jsonify({"success": False, "ErrorCode": "2"})
+            elif room_map.get(new_row["room"]) is None:
+                return jsonify({"success": False, "ErrorCode": "3"})
+
+    with open("sessions.csv", "a", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=new_row.keys())
         if f.tell() == 0:
             writer.writeheader()
-        writer.writerow(row)
+        writer.writerow(new_row)
 
-    return jsonify({"success": True, "eventid": eventid})
+    return jsonify({"success": True, "ErrorCode": "0"})
+
+@app.route("/api/fetch-sessions", methods=["GET"])
+def get_session():
+    data = fetch_sessions()
+    return jsonify(data)
+
+@app.route("/api/delete-session/<sessionid>", methods=["DELETE"])
+def delete_session(sessionid):
+    you = identification()
+    if you["selfid"] is None or you["role"] != "tutor":
+        return jsonify({"success": False, "ErrorCode": "Unauthenticated attempt"})
+    else:
+        try:
+            #Delete session
+            sessionlist = []
+            header = []
+            with open("sessions.csv", "r", newline="", encoding="utf-8") as csvfile:
+                reader = csv.DictReader(csvfile)
+                header = reader.fieldnames
+                sessionlist = list(reader)
+            sessionlist = [row for row in sessionlist if row["eventid"] != str(sessionid)]
+            with open("sessions.csv", "w", newline="", encoding="utf-8") as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=header)
+                writer.writeheader()
+                writer.writerows(sessionlist)
+
+            #Delete Events
+            eventlist = []
+            header = []
+            with open("events.csv", "r", newline="", encoding="utf-8") as csvfile:
+                reader = csv.DictReader(csvfile)
+                header = reader.fieldnames
+                eventlist = list(reader)
+            
+            eventlist = [row for row in eventlist if row["eventid"] != str(sessionid)]
+            with open("events.csv", "w", newline="", encoding="utf-8") as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=header)
+                writer.writeheader()
+                writer.writerows(eventlist)
+
+            return jsonify({"success": True, "ErrorCode": "Delete successfully!"})
+        except Exception as e:
+            return jsonify({"success": False, "ErrorCode": str(e)})
+
 
 if __name__ == "__main__":
     app.run(debug=True, port=8080)
