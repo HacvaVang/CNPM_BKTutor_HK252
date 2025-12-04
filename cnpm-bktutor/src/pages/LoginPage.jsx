@@ -101,7 +101,7 @@ export default function LoginPage() {
                 variant="outlined"
                 sx = {{borderColor: '#919090ff', color: '#919090ff'}}
                 fullWidth
-                onClick={() => window.location.href="https://172.19.241.189:8001/login"}
+                onClick={() => window.location.href="http://localhost:8000/sso/login?service=http://localhost:5173/login"}
               >
                 <img
                   src="/bk-logo.png"
@@ -114,7 +114,7 @@ export default function LoginPage() {
                 variant="outlined"
                 sx = {{borderColor: '#919090ff', color: '#919090ff'}}
                 fullWidth
-                onClick={() => window.location.href="https://localhost:8000/admin"}
+                onClick={() => window.location.href="http://localhost:8000/admin"}
               >
                 Admin
               </Button>

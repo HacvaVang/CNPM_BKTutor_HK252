@@ -25,15 +25,17 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
 ]
 
+# Đảm bảo session và authentication middleware đúng thứ tự
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',   # Phải có
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware', # Phải có
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
 
 ROOT_URLCONF = 'sso_backend.urls'
 
@@ -60,6 +62,13 @@ TEMPLATES = [
 # CHỈNH SỬA: Chuyển sang định dạng Dictionary để khắc phục lỗi AttributeError: 'str' object has no attribute 'copy'.
 MAMA_CAS_SERVICES = [
     {
+        'SERVICE': r'^https?://localhost:5173/.*',  # Dùng Regex để chấp nhận mọi đường dẫn bắt đầu bằng localhost:5173
+        'NAME': 'Ứng dụng Frontend tại 5173',
+        'enabled': True,
+        'username_attribute': 'username',
+        # Bạn có thể thêm các tùy chọn khác nếu cần
+    },
+    {
         # Regex cho Client Flask đang chạy trên cổng 8001 (http://127.0.0.1:8001/.*)
         'SERVICE': r'^http://127\.0\.0\.1:8001/.*',
         'NAME': 'Client Flask Localhost (127.0.0.1)',
@@ -81,6 +90,14 @@ MAMA_CAS_SERVICES = [
     
     # Thêm các dịch vụ khác nếu có
 ]
+# Thêm vào cuối settings.py (hoặc trong phần dev chỉ định)
+
+# Cho phép cookie hoạt động khi chạy HTTP trong development
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+
+# (Tùy chọn) nếu bạn dùng csrf token trong form login của mama-cas
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000', 'http://localhost:8000']
 
 # Định nghĩa URL gốc của CAS Server
 CAS_SERVER_URL = 'http://127.0.0.1:8000/sso' 

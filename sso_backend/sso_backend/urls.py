@@ -1,3 +1,5 @@
+# urls.py (File chính)
+
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework_simplejwt.views import (
@@ -6,20 +8,17 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView,
 )
 
+# 1. Import Custom Login View của bạn
+from .view import CustomLoginView
+
 urlpatterns = [
-    # Admin interface
     path('admin/', admin.site.urls),
 
-    # CAS Server endpoints (login, logout, serviceValidate, proxy, etc.)
-    # Tất cả các route của mama_cas phải nằm dưới tiền tố 'sso/'
-    path('sso/', include('mama_cas.urls')),
+    # === CAS SERVER ENDPOINTS ===
+    path('sso/login', CustomLoginView.as_view(), name='mama_cas_login'),  # Ghi đè login
+    # path('sso/', include('sso_backend.my_cas_urls')),                     # Các endpoint còn lại
 
-    # --- 2. JWT ENDPOINTS (Cho các API Stateless) ---
-    # Endpoint này cho phép client yêu cầu Access Token mới bằng Refresh Token
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    # Endpoint để kiểm tra tính hợp lệ của Access Token
-    path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
-    
-    # Thêm các API khác của bạn tại đây
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    # Các API JWT nếu cần (có thể bật lại sau)
+    # path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    # ...
 ]
