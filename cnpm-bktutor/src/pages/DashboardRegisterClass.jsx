@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 
 import NavigationBar from "../components/navigationbar.jsx"; 
 // URL cơ sở cho API
-const API_BASE_URL = 'http://127.0.0.1:8080';
+const API_BASE_URL = 'http://localhost:8080';
 const SESSIONS_PER_PAGE = 10; // Giới hạn 10 buổi học mỗi trang
 
 // Hàm tiện ích để định dạng chuỗi ISO sang HH:MM
