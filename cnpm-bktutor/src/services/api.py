@@ -10,22 +10,24 @@ CORS(app, supports_credentials=True, origins=["http://localhost:5173"])
 
 #validate session based on given tokenid
 def session_validate():
-    raw = request.cookies.get("session")
-    if not raw:
+    response = requests.get("http://localhost:8000/sso/login?service=http://localhost:5173/login", cookies = request.cookies.to_dict())
+    print("=== Kết quả kiểm tra redirect SSO ===")
+    print(f"Mã trạng thái cuối cùng: {response.status_code}")
+    print(f"URL cuối cùng sau tất cả các redirect: {response.url}")
+    print(f"Số lần redirect: {len(response.history)}")
+    found = False
+    if response.history:
+        print("\nLịch sử redirect:")
+        for i, r in enumerate(response.history):
+            print(f"{i+1}. {r.status_code} {r.url}")
+            if r.status_code == 302:
+                found = True
+                break
+    else:
         return None
-    cookie_val = json.loads(raw)
-    if cookie_val is None:
+    if not found:
         return None
-    tokenid = cookie_val.get("jti")
-    try:
-        with open("ticket.csv", newline="", encoding="utf-8") as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                if row["ticketid"] == tokenid:
-                    return cookie_val
-            return None
-    except FileNotFoundError:
-        return None
+    return request.cookies.to_dict()
 
 def identification(id = None):
     cookie_val = session_validate()
@@ -334,28 +336,12 @@ def unsubscribe_session(eventid):
 
 @app.route("/logout")
 def logout():
-    #delete entry in ticket.csv
-    raw = request.cookies.get("session")
-    if raw:
-        ticketid = json.loads(raw).get("jti")
-        keep = []
-        try:
-            with open("ticket.csv", "r", newline="", encoding="utf-8") as csvfile:
-                reader = csv.DictReader(csvfile)
-                for row in reader:
-                    if row["ticketid"] != ticketid:
-                        keep.append(row)
-            
-            with open("ticket.csv", "w", newline="", encoding="utf-8") as csvfile:
-                writer = csv.DictWriter(csvfile, ["ticketid"])
-                writer.writeheader()
-                writer.writerows(keep)
-        except FileNotFoundError:
-            pass
+    resp = make_response(jsonify({
+        "status": "success",
+        "message": "Logged out successfully"
+    }))
 
-    resp = make_response(jsonify({"status": "logged out"}))
-    # overwrite cookie with empty value and expired date
-    resp.set_cookie("session", "", expires=0, httponly=True, samesite="None", secure=True)
+    requests.get("http://localhost:8000/sso/logout", cookies = request.cookies.to_dict())
     return resp
 
 @app.route("/api/create-event", methods=["POST"])

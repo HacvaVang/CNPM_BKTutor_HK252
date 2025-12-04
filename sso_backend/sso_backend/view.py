@@ -28,7 +28,7 @@ class CustomLoginView(LoginView):
             samesite = 'Lax'
 
             response.set_cookie(
-                key='custom_user_id',
+                key='user_id',
                 value=user_id,
                 max_age=max_age,
                 secure=secure,
@@ -37,7 +37,7 @@ class CustomLoginView(LoginView):
                 path='/',
             )
 
-            print(f"[CAS POST SUCCESS] Cookie 'custom_user_id={user_id}' đã set ngay lập tức!")
+            print(f"[CAS POST SUCCESS] Cookie 'user_id={user_id}' đã set ngay lập tức!")
 
         return response
 
@@ -58,7 +58,7 @@ class CustomLoginView(LoginView):
             samesite = 'Lax'
 
             response.set_cookie(
-                key='custom_user_id',
+                key='user_id',
                 value=user_id,
                 max_age=max_age,
                 secure=secure,
@@ -67,6 +67,6 @@ class CustomLoginView(LoginView):
                 path='/',
             )
 
-            print(f"[CAS GET SUCCESS] Cookie 'custom_user_id={user_id}' đã set!")
+            print(f"[CAS GET SUCCESS] Cookie 'user_id={user_id}' đã set!")
 
         return response
