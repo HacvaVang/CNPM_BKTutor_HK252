@@ -22,7 +22,7 @@ export default function TutorClassPage(){
 
   const handleLogout = async () => {
     try {
-        await fetch("http://127.0.0.1:8080/logout", {
+        await fetch("http://localhost:8080/logout", {
         method: "GET",
         credentials: "include"
         });
@@ -36,7 +36,7 @@ export default function TutorClassPage(){
   const fetchidentity = async () => {
     try{
       setLoading(true);
-      const res = await fetch('http://127.0.0.1:8080/api/identity', {
+      const res = await fetch('http://localhost:8080/api/identity', {
         method: "GET",
         credentials: "include"
       })
@@ -52,7 +52,7 @@ export default function TutorClassPage(){
   const fetchNotifications = async () => {
     try {
       setLoading(true);
-      const res = await fetch('http://127.0.0.1:8080/api/notifications', {
+      const res = await fetch('http://localhost:8080/api/notifications', {
         method: "GET",
         credentials: "include"
       })
@@ -78,7 +78,7 @@ export default function TutorClassPage(){
   const fetchMessages = async () => {
     try {
       setLoading(true);
-      const res = await fetch('http://127.0.0.1:8080/api/messages', {
+      const res = await fetch('http://localhost:8080/api/messages', {
         method: "GET",
         credentials: "include"
       })
@@ -441,7 +441,7 @@ export default function TutorClassPage(){
         useEffect(() => {
             const fetchSessions = async () => {
             try {
-                const res = await fetch("http://127.0.0.1:8080/api/fetch-sessions", {
+                const res = await fetch("http://localhost:8080/api/fetch-sessions", {
                     method: "GET",
                     credentials: "include"            
                 })
@@ -469,7 +469,7 @@ export default function TutorClassPage(){
 
         const HandleDeleteSession = async (sessionid) => {
             try {
-                const res = await fetch(`http://127.0.0.1:8080/api/delete-session/${sessionid}`, {
+                const res = await fetch(`http://localhost:8080/api/delete-session/${sessionid}`, {
                     method: "DELETE",
                     credentials: "include"
                 });
