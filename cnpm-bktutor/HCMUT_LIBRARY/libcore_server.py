@@ -113,19 +113,20 @@ def get_user(user_id: str):
 
     for row in users:
         if row["User_ID"] == user_id:
-            print(1)
             return {
                 "user_id": user_id,
                 "name": row.get("Name", ""),
                 "status": row.get("Status", ""),
-                "role": row.get("Role", "")
+                "role": row.get("Role", ""),
+                "major": row.get("Major", "")  
             }
 
     return {
         "user_id": user_id,
         "name": "Không tìm thấy",
         "status": "",
-        "role": ""
+        "role": "",
+        "major": ""
     }
 
 @app.get("/user/full")
