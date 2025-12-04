@@ -174,7 +174,7 @@ export default function HomePage() {
             </Typography>
             <Typography
               component="a"
-              href="/tutorlist"
+              href="/calendar"
               sx={{
                 color: 'white',
                 textDecoration: 'none',
@@ -187,7 +187,7 @@ export default function HomePage() {
             </Typography>
             <Typography
               component="a"
-              href="https://localhost:5173/subjectlist"
+              href="http://localhost:5173/subjectlist"
               sx={{
                 color: 'white',
                 textDecoration: 'none',
@@ -200,7 +200,7 @@ export default function HomePage() {
             </Typography>
             <Typography
               component="a"
-              href="#"
+              href="/DashboardRegisterClass"
               sx={{
                 color: 'white',
                 textDecoration: 'none',
@@ -209,7 +209,7 @@ export default function HomePage() {
                 '&:hover': { opacity: 0.8 },
               }}
             >
-              Các lớp học của tôi
+              Đăng ký lớp học
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 2, marginLeft: 4 }}>

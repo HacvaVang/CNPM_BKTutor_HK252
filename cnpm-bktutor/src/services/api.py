@@ -33,7 +33,8 @@ def identification(id = None):
             "selfid" : None,
             "name": None,
             "role": None,
-            "state": None
+            "state": None,
+            "major": None
         }
     key = ""
     if id is not None:
@@ -49,21 +50,24 @@ def identification(id = None):
                     "selfid": data.get("user_id", None),
                     "name": data.get("name", None),
                     "role": data.get("role", None),
-                    "state": data.get("status", None)
+                    "state": data.get("status", None),
+                    "major": data.get("major", None)
                 }
         else:
             return {
                 "selfid": None,
                 "name": None,
                 "role": None,
-                "state": None
+                "state": None,
+                "major": None
             }
     except requests.exceptions.RequestException:
         return {
                 "selfid": None,
                 "name": None,
                 "role": None,
-                "state": None
+                "state": None,
+                "major": None
             }
     
 def read_notifications():
@@ -116,28 +120,63 @@ def read_messages():
         return []
     
 
-def read_events():
+def read_events(all=False):
     cookie_val = session_validate()
     if cookie_val is None:
         return []
+    
     key = cookie_val["user_id"]
     events = []
+    
     try:
-        with open("events.csv", newline="", encoding="utf-8") as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                if row["userid"] == str(key) and row["status"] == "upcoming":
-                    events.append({
-                        "id": row["eventid"],
-                        "title": row["title"],
-                        "userid": row["userid"],
-                        "date": row["date"],
-                        "timestart": row["timestart"],
-                        "timeend": row["timeend"],
-                        "room": row["room"],
-                        "tutorid": row["tutorid"]
-                    })  
-            return events
+        if all:
+            with open("sessions.csv", newline="", encoding="utf-8") as csvfile:
+                reader = csv.DictReader(csvfile)
+                with open("events.csv", newline="", encoding="utf-8") as csvfile2:
+                    reader2 = csv.DictReader(csvfile2)
+                    with open("roomcapacity.csv", newline="", encoding="utf-8") as csvfile3:
+                        reader3 = csv.DictReader(csvfile3)
+                        roommap = {row3["room"]: row3["capacity"] for row3 in reader3}
+                        csvfile3.seek(0)
+                        joined_event_ids = {row2["eventid"] for row2 in reader2 if row2["userid"] == str(key)}
+                        csvfile2.seek(0)
+                        for row in reader:
+                            data = identification(row["tutorid"])
+                            events.append({
+                                "id": row["eventid"],
+                                "title": row["title"],
+                                "date": row["date"],
+                                "timestart": row["timestart"],
+                                "timeend": row["timeend"],
+                                "room": row["room"],
+                                "capacity": roommap.get(row["room"], "Unknown"),
+                                "num_joined": len([1 for r in reader2 if r["eventid"] == row["eventid"]]),
+                                "status": "joined" if row["eventid"] in joined_event_ids and row["status"]=="upcoming" else "completed" if row["status"]=="completed" else "available",
+                                "tutorname": data.get("name", "Unknown"),
+                                "major": data.get("major", "Unknown")
+                            })
+                            csvfile2.seek(0)
+        else:
+            with open("sessions.csv", newline="", encoding="utf-8") as csvfile:
+                reader = csv.DictReader(csvfile)
+                with open("events.csv", newline="", encoding="utf-8") as csvfile2:
+                    reader2 = csv.DictReader(csvfile2)
+                    joined_event_ids = {row2["eventid"] for row2 in reader2 if row2["userid"] == str(key)}
+                    csvfile2.seek(0)
+                    for row in reader:
+                        if row["eventid"] in joined_event_ids or row["tutorid"] == str(key):
+                            events.append({
+                                "id": row["eventid"],
+                                "title": row["title"],
+                                "date": row["date"],
+                                "timestart": row["timestart"],
+                                "timeend": row["timeend"],
+                                "room": row["room"],
+                                "status": row["status"],
+                                "tutorid": row["tutorid"]
+                            })
+                
+        return events
     except FileNotFoundError:
         return []
 
@@ -198,6 +237,53 @@ def get_events():
     data = read_events()
     return jsonify(data)
 
+@app.route("/api/sessions", methods=["GET"])
+def get_sessions():
+    data = read_events(all=True)
+    return jsonify(data)
+@app.route("/api/sessions/<eventid>", methods=["POST"])
+def subscribe_session(eventid):
+    cookie_val = session_validate()
+    if cookie_val is None:
+        return redirect(url_for("get_identity"))
+    key = cookie_val["user_id"]
+    print("Subscribing user:", key, "to event:", eventid)
+    if not eventid:
+        return jsonify({"error": "Missing 'eventid' in request body"}), 400
+    #add entry in events.csv
+    row = {
+        "eventid": eventid,
+        "userid": str(key)
+    }
+    with open("events.csv", "a", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=row.keys())
+        if f.tell() == 0:
+            writer.writeheader()
+        writer.writerow(row)
+    return jsonify({"status": "subscribed"})
+@app.route("/api/sessions/<eventid>", methods=["DELETE"])
+def unsubscribe_session(eventid):
+    cookie_val = session_validate()
+    if cookie_val is None:
+        return redirect(url_for("get_identity"))
+    key = cookie_val["user_id"]
+    if not eventid:
+        return jsonify({"error": "Missing 'eventid' in request body"}), 400
+    #remove entry in events.csv
+    keep = []
+    try:
+        with open("events.csv", "r", newline="", encoding="utf-8") as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                if not (row["eventid"] == eventid and row["userid"] == str(key)):
+                    keep.append(row)
+        with open("events.csv", "w", newline="", encoding="utf-8") as csvfile:
+            writer = csv.DictWriter(csvfile, ["eventid", "title", "userid", "date", "timestart", "timeend", "room", "status", "tutorid"])
+            writer.writeheader()
+            writer.writerows(keep)
+    except FileNotFoundError:
+        pass
+    return jsonify({"status": "unsubscribed"})
 @app.route("/logout")
 def logout():
     #delete entry in ticket.csv

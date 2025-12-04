@@ -1,4 +1,4 @@
-Code,Role,Last_name,First_name,Name,Status,Birthday,Phone_number,Email,Email_backup,Major,Thời điểm nhập học,Năm CTĐT,Đào tạo đến HK (tối đa),Bậc đào tạo,Ngành/Chuyên ngành,Buổi học/giảng dạy,Cơ sở,User_ID
+Code,Role,Last_name,First_name,Name,Status,Birthday,Phone_number,Email,Email_backup,Major,Thời điểm nhập học,Năm CTĐT,Đào tạo đến HK (tối đa),Bậc đào tạo,Major,Buổi học/giảng dạy,Cơ sở,User_ID
 2310201,student,Đặng Huyền,Vũ,Đặng Huyền Vũ,Active,28/02/2005,777777777,vufemboi@hcmut.edu.vn,capofan@gmaill.com,Khoa KH&KTMT,08/2023,2023,20282,Đại học,Khoa học Máy tính,Sáng,Cơ sở 2,1
 2310202,student,Phạm Xuân,Bắc,Phạm Xuân Bắc,Active,14/08/2004,933445566,bacbaoyu@hcmut.edu.vn,vitmuaxuan@gmail.com,Khoa CNTT,08/2023,2023,20282,Đại học,CNTT,Chiều,Cơ sở 1,2
 2310203,student,Nguyễn Phú,Thịnh,Nguyễn Phú Thịnh,Active,12/01/2004,977332211,thinh9pmulover@hcmut.edu.vn,hacbigbird@gmail.com,Khoa KTHH,08/2023,2023,20282,Đại học,Hóa học,Sáng,Cơ sở 1,3
