@@ -53,7 +53,7 @@ export default function SubjectListPage() {
   const MessageOpen = Boolean(messageAnchor);
   const [notifications, setNotifications] = useState([]);
   const [messages, setMessages] = useState([]);
-  const { identity } = useContext(IdentityContext);
+  const { identity, setIdentity } = useState([]);
   const [loading, setLoading] = useState(false);
 
   // --- Load Subjects ---
