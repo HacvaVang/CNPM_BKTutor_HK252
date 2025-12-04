@@ -44,24 +44,25 @@ export default function LoginPage() {
       run();
     }, []);
   
-    useEffect(() => {
-      if (!identity) return;
-      switch (identity.role) {
-          case "admin":
-              navigate("/adminhome");
-          break;
-          case "student":
-              navigate("/studenthome");
-          break;
-          case "tutor":
-              navigate("/tutorhome");
-          break;
-          default:
-              navigate("/login");
-          break;
-      }
-    }, [identity, navigate]);
+  useEffect(() => {
+    if (!identity) return;
+    switch (identity.role) {
+        case "admin":
+            navigate("/adminhome");
+        break;
+        case "student":
+            navigate("/studenthome");
+        break;
+        case "tutor":
+            navigate("/tutorhome");
+        break;
+        default:
+            navigate("/login");
+        break;
+    }
+  }, [identity, navigate]);
 
+  
   return (
     <Box
       // ... (Phần style container giữ nguyên) ...

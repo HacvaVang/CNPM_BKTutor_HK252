@@ -16,7 +16,7 @@ urlpatterns = [
 
     # === CAS SERVER ENDPOINTS ===
     path('sso/login', CustomLoginView.as_view(), name='mama_cas_login'),  # Ghi đè login
-    # path('sso/', include('sso_backend.my_cas_urls')),                     # Các endpoint còn lại
+    path('sso/', include('sso_backend.my_cas_urls')),                     # Các endpoint còn lại
 
     # Các API JWT nếu cần (có thể bật lại sau)
     # path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
