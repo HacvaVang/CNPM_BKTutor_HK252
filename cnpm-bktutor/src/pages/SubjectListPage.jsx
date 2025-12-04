@@ -2,12 +2,8 @@ import { useState, useEffect } from "react";
 import { API_URL } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import {
-  AppBar,
-  Toolbar,
   Box,
   Typography,
-  Button,
-  Container,
   Select,
   MenuItem,
   InputBase,
@@ -17,13 +13,7 @@ import {
 import { styled } from "@mui/material/styles";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import MessageIcon from '@mui/icons-material/Message';
-import SettingsIcon from '@mui/icons-material/Settings';
-import CheckIcon from '@mui/icons-material/Check';
-import { useContext } from "react";
-import { IdentityContext } from "../services/IdentityContext";
-
+import NavigationBar from "../components/navigationbar";
 
 // Styled input for search
 const SearchInput = styled(InputBase)(({ theme }) => ({
@@ -44,17 +34,6 @@ export default function SubjectListPage() {
   const [category, setCategory] = useState("All");
   const [lecturer, setLecturer] = useState("All");
   const itemsPerPage = 5;
-
-
-  // --- Identity / notifications / messages state ---
-  const [notifAnchor, setNotifAnchor] = useState(null);
-  const [messageAnchor, setMessageAnchor] = useState(null);
-  const Notiopen = Boolean(notifAnchor);
-  const MessageOpen = Boolean(messageAnchor);
-  const [notifications, setNotifications] = useState([]);
-  const [messages, setMessages] = useState([]);
-  const { identity, setIdentity } = useState([]);
-  const [loading, setLoading] = useState(false);
 
   // --- Load Subjects ---
   const loadSubjects = () => {
@@ -90,160 +69,12 @@ export default function SubjectListPage() {
   const hasNext = (page + 1) * itemsPerPage < subjects.length;
   const hasPrev = page > 0;
 
-  // --- Identity / Notifications / Messages functions ---
-  const handleLogout = async () => {
-    try {
-      await fetch("http://127.0.0.1:8080/logout", {
-        method: "GET",
-        credentials: "include",
-      });
-      navigate("/login");
-    } catch (err) {
-      console.error("Logout failed", err);
-    }
-  };
-
-  const fetchidentity = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch(`${API_URL}/identity`, { method: "GET", credentials: "include" });
-      const data = await res.json();
-      setIdentity(data);
-    } catch (err) {
-      console.log(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchNotifications = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch(`${API_URL}/notifications`, { method: "GET", credentials: "include" });
-      const data = await res.json();
-      setNotifications(data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchMessages = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch(`${API_URL}/messages`, { method: "GET", credentials: "include" });
-      const data = await res.json();
-      setMessages(data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const groupedMessages = messages.reduce((acc, msg) => {
-    if (!acc[msg.to]) acc[msg.to] = [];
-    acc[msg.to].push(msg);
-    return acc;
-  }, {});
-
-  const handleNotifClick = (event) => {
-    setNotifAnchor(event.currentTarget);
-    fetchNotifications();
-  };
-  const handleNotifClose = () => setNotifAnchor(null);
-  const handleMessageClick = (event) => {
-    setMessageAnchor(event.currentTarget);
-    fetchMessages();
-  };
-  const handleMessageClose = () => setMessageAnchor(null);
-
-  useEffect(() => {
-    fetchidentity();
-  }, []);
 
   // --- Render ---
   return (
     <Box sx={{ width: "100vw", minHeight: "100vh", backgroundColor: "#f5f5f5", overflowX: "hidden" }}>
       {/* --- AppBar from HomePage --- */}
-      <AppBar className="header-nav">
-        <Toolbar>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexGrow: 1 }}>
-            <img src="/bk-logo.png" alt="BK Logo" style={{ width: 50, height: 50, cursor: 'pointer' }} onClick={() => navigate('/adminhome')}/>
-            <Typography variant="h6" sx={{ fontWeight: 600, cursor: 'pointer' }} onClick={() => navigate('/adminhome')}>
-              BK Tutor
-            </Typography>
-
-            <Typography
-              component="a"
-              href="#"
-              sx={{ color: 'white', textDecoration: 'none', fontWeight: 500, cursor: 'pointer', '&:hover': { opacity: 0.8 } }}
-              onClick={() => navigate('/adminhome')}
-            >
-              Trang chủ
-            </Typography>
-
-            <Typography
-              component="a"
-              href="#"
-              sx={{ color: 'white', textDecoration: 'none', fontWeight: 500, cursor: 'pointer', '&:hover': { opacity: 0.8 } }}
-              onClick={() => navigate('/calendar')}
-            >
-              Lịch
-            </Typography>
-
-            <Box sx={{
-              bgcolor: 'rgba(255,255,255,0.25)',
-              color: 'white',
-              px: 2.5,
-              py: 1,
-              borderRadius: 2,
-              fontWeight: 600,
-              fontSize: '1rem',
-              backdropFilter: 'blur(4px)',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-              cursor: 'default',
-              userSelect: 'none',
-            }}>
-              Tài liệu
-            </Box>
-
-            <Typography
-              component="a"
-              href="#"
-              sx={{ color: 'white', textDecoration: 'none', fontWeight: 500, cursor: 'pointer', '&:hover': { opacity: 0.8 } }}
-            >
-              Các lớp học của tôi
-            </Typography>
-          </Box>
-
-          <Box sx={{ display: 'flex', gap: 2, marginLeft: 4 }}>
-            {/* Notifications */}
-            <IconButton sx={{ color: 'white' }} onClick={handleNotifClick}>
-              <NotificationsIcon />
-            </IconButton>
-
-            {/* Messages */}
-            <IconButton sx={{ color: 'white' }} onClick={handleMessageClick}>
-              <MessageIcon />
-            </IconButton>
-
-            <Typography alignContent="center"
-              component="a"
-              href="#"
-              sx={{ color: 'white', textDecoration: 'none', fontWeight: 500, cursor: 'pointer', '&:hover': { opacity: 0.8 } }}
-              onClick={() => navigate('/userinfo')}
-            >  
-              {identity?.name || "Unknown"}
-            </Typography>
-
-            <Button sx={{ backgroundColor: 'white', color: '#0099ff', fontWeight: 600 }} onClick={handleLogout}>
-              Logout
-            </Button>
-          </Box>
-        </Toolbar>
-      </AppBar>
+      <NavigationBar />
 
       {/* --- SubjectListPage Content --- */}
       <Box
