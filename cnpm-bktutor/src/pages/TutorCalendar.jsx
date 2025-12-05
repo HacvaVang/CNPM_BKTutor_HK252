@@ -115,7 +115,8 @@ export default function HomePage() {
         title: `${ev.title}`,
         start: ev.timestart,
         end: ev.timeend,
-        room: ev.room
+        room: ev.room,
+        tutor: ev.tutor
       }));
 
       setEvents(formatted);
@@ -278,13 +279,12 @@ export default function HomePage() {
                 <Typography 
                 variant="h6" 
                 sx={{ fontWeight: 600 , cursor: 'pointer'}}
-                onClick={() => navigate ('/tutorhomepage')}
+                onClick={() => navigate ('/tutorhome')}
                 >
                 BK Tutor
                 </Typography>
                 <Typography
                 component="a"
-                href="localhost:5173/tutorhomepage"
                 sx={{
                     color: 'white',
                     textDecoration: 'none',
@@ -292,6 +292,7 @@ export default function HomePage() {
                     cursor: 'pointer',
                     '&:hover': { opacity: 0.8 },
                 }}
+                onClick={() => navigate("/tutorhome")}
                 >
                 Trang chủ
                 </Typography>
@@ -320,7 +321,6 @@ export default function HomePage() {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2}}>
                 <Typography
                 component="a"
-                href="https://localhost:5173/subjectlist"
                 sx={{
                     color: 'white',
                     textDecoration: 'none',
@@ -328,6 +328,7 @@ export default function HomePage() {
                     cursor: 'pointer',
                     '&:hover': { opacity: 0.8 },
                 }}
+                onClick={() => navigate("/subjectlist")}
                 >
                 Tài liệu
                 </Typography>
@@ -335,7 +336,6 @@ export default function HomePage() {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2}}>
                 <Typography
                 component="a"
-                href="#"
                 sx={{
                     color: 'white',
                     textDecoration: 'none',
@@ -343,8 +343,9 @@ export default function HomePage() {
                     cursor: 'pointer',
                     '&:hover': { opacity: 0.8 },
                 }}
+                onClick={() => navigate("/tutorclass")}
                 >
-                Các lớp học của tôi
+                Lớp của tôi
                 </Typography>
           </Box>
         </Box>
@@ -630,7 +631,7 @@ export default function HomePage() {
                 <Typography><strong>Start:</strong> {selectedEvent.start.toLocaleString()}</Typography>
                 <Typography><strong>End:</strong> {selectedEvent.end?.toLocaleString()}</Typography>
                 <Typography><strong>Room:</strong> {selectedEvent.room}</Typography>
-                <Typography><strong>Tutor:</strong> {selectedEvent.tutorid}</Typography>
+                <Typography><strong>Tutor:</strong> {selectedEvent.tutor}</Typography>
               </>
             )}
           </DialogContent>
