@@ -176,7 +176,7 @@ def read_events(all=False):
                                 "timeend": row["timeend"],
                                 "room": row["room"],
                                 "status": row["status"],
-                                "tutorid": row["tutorid"]
+                                "tutor": identification(row["tutorid"]).get("name", "unknown")
                             })
                 
         return events

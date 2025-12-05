@@ -8,6 +8,7 @@ import CheckIcon from '@mui/icons-material/Check'
 import './HomePage.css';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import Pagination from "@mui/material/Pagination";
 
 export default function TutorClassPage(){
     const navigate = useNavigate();
@@ -140,13 +141,12 @@ export default function TutorClassPage(){
                     <Typography 
                     variant="h6" 
                     sx={{ fontWeight: 600 , cursor: 'pointer'}}
-                    onClick={() => navigate ('/')}
+                    onClick={() => navigate ('/tutorhome')}
                     >
                     BK Tutor
                     </Typography>
                     <Typography
                     component="a"
-                    href="#"
                     sx={{
                         color: 'white',
                         textDecoration: 'none',
@@ -154,12 +154,12 @@ export default function TutorClassPage(){
                         cursor: 'pointer',
                         '&:hover': { opacity: 0.8 },
                     }}
+                    onClick={()=>navigate("/tutorhome")}
                     >
                     Trang chủ
                     </Typography>
                     <Typography
                     component="a"
-                    href="/tutorcalendar"
                     sx={{
                         color: 'white',
                         textDecoration: 'none',
@@ -167,12 +167,12 @@ export default function TutorClassPage(){
                         cursor: 'pointer',
                         '&:hover': { opacity: 0.8 }
                     }}
+                    onClick={() => navigate("/tutorcalendar")}
                     >
                     Lịch
                     </Typography>
                     <Typography
                     component="a"
-                    href="http://localhost:5173/subjectlist"
                     sx={{
                         color: 'white',
                         textDecoration: 'none',
@@ -180,6 +180,7 @@ export default function TutorClassPage(){
                         cursor: 'pointer',
                         '&:hover': { opacity: 0.8 },
                     }}
+                    onClick={() => navigate("/subjectlist")}
                     >
                     Tài liệu
                     </Typography>
@@ -436,6 +437,8 @@ export default function TutorClassPage(){
         const [selectedDate, setSelectedDate] = useState(null);
         const [appliedSearch, setAppliedSearch] = useState("");
         const [appliedDate, setAppliedDate] = useState(null);
+        const [page, setPage] = useState(1);
+        const pageSize = 8;
 
         // Fetch courses when page loads
         useEffect(() => {
@@ -499,6 +502,11 @@ export default function TutorClassPage(){
         return matchesText && matchesDate;
         });
 
+        const paginatedSessions = filteredSessions.slice(
+        (page - 1) * pageSize,
+        page * pageSize
+        );
+
     return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
       <Typography variant="h4" gutterBottom>Lớp của tôi</Typography>
@@ -544,7 +552,7 @@ export default function TutorClassPage(){
       </Grid>
 
       <Grid container spacing={3}>
-        {filteredSessions.map(session => {
+        {paginatedSessions.map(session => {
           const start = new Date(session.timestart);
           const end = new Date(session.timeend);
 
@@ -589,6 +597,13 @@ export default function TutorClassPage(){
           );
         })}
       </Grid>
+      <Pagination
+        count={Math.ceil(filteredSessions.length / pageSize)}
+        page={page}
+        onChange={(event, value) => setPage(value)}
+        color="primary"
+        sx={{ mt: 3, display: "flex", justifyContent: "center" }}
+        />
     </Container>
   );
 };
