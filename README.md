@@ -2,9 +2,17 @@
 
 ## Tạo môi trường ảo và cài thư viện (Create virtual enviroment and install libraries):
 - Tới thư mục đã git clone và nhập các lệnh sau
+
+- Tạo môi trường ảo
 ```bash
 python3 -m venv venv
+```
+- Kích hoạt môi trường ảo
+```bash
 source venv/bin/activate
+```
+- Cài thư viện cần thiết (Tất cả các thư viện cần thực thi đều có trong file này)
+```bash
 pip install  -r requirements.txt
 ```
 ## Chạy CAS-server
@@ -14,19 +22,19 @@ cd sso_backend
 ```
 và chạy lệnh như bên dưới:
 ```bash
-python3 manage.py migrate
-python3 manage.py runserver
+python3 sso_backend/manage.py migrate
+python3 sso_backend/manage.py runserver 8000
 ```
-Nếu chưa có tài khoản admin, hãy chạy lệnh
+Nếu muốn tạo tài khoản admin, hãy chạy lệnh (Có thể bỏ qua bước này)
 ```bash
 python3 manage.py createsuperuser
 ```
-Nhập username và pass tương ứng: `hac` và `123` hoặc `DangHuyenVu` và `123`
+Nhập username và pass mong muốn
 
 # Hướng dẫn chạy dự án locally
 
 ### Yêu cầu
-- Node.js (cho frontend)
+- Node.js >= 20.0.0 (cho frontend)
 - Python 3.10+ (cho backend và data core)
 - Git
 
@@ -53,7 +61,6 @@ python api.py         # Windows
 #### 3. Chạy Data_core
 ```bash
 cd cnpm-bktutor/HCMUT_LIBRARY
-pip install -r requirements.txt
 
 # Khởi động server
 uvicorn libcore_server:app --reload --port 7999
