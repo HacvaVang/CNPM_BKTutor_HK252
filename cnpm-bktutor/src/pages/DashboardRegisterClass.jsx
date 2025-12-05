@@ -22,6 +22,24 @@ const formatIsoTime = (isoString) => {
     }
 };
 
+// Hàm tiện ích để định dạng chuỗi ISO sang DD/MM/YYYY (MỚI)
+const formatDate = (isoString) => {
+    if (!isoString) return 'N/A';
+    // Giả định isoString là định dạng YYYY-MM-DD
+    try {
+        const parts = isoString.split('-');
+        if (parts.length === 3) {
+            // Chuyển sang DD/MM/YYYY
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+        // Nếu không đúng định dạng YYYY-MM-DD, thử chuyển thành Date object
+        const dateObj = new Date(isoString);
+        return dateObj.toLocaleDateString('vi-VN');
+    } catch (e) {
+        return isoString;
+    }
+};
+
 
 // --- 1. CourseCard Component ---
 const CourseCard = ({ session, onSubscribe, onUnsubscribe }) => {
@@ -31,6 +49,7 @@ const CourseCard = ({ session, onSubscribe, onUnsubscribe }) => {
         tutorname,
         major,
         status,
+        date, // <<< THÊM DATE VÀO PROPS
         timestart,
         timeend,
         room, 
@@ -38,6 +57,9 @@ const CourseCard = ({ session, onSubscribe, onUnsubscribe }) => {
         num_joined,
         eventid
     } = session;
+
+    // Định dạng ngày
+    const formattedDate = formatDate(date); // <<< DÙNG HÀM MỚI
 
     const formattedTimeStart = formatIsoTime(timestart);
     const formattedTimeEnd = formatIsoTime(timeend);
@@ -53,7 +75,7 @@ const CourseCard = ({ session, onSubscribe, onUnsubscribe }) => {
 
     switch (status) {
         case 'available':
-            statusDisplay = 'Rảnh';
+            statusDisplay = 'Sẵn sàng';
             statusColorClass = 'text-green-600'; 
             actionButton = (
                 <button
@@ -110,6 +132,12 @@ const CourseCard = ({ session, onSubscribe, onUnsubscribe }) => {
                 
                 {/* Body (Thông tin chi tiết) */}
                 <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm items-center mb-4">
+                    
+                    {/* Ngày (Mục mới) */}
+                    <div className="info-row">
+                        <span className="text-gray-600 font-medium mr-1">Ngày:</span>
+                        <span className="text-gray-800 font-bold">{formattedDate}</span> {/* <<< HIỂN THỊ DATE */}
+                    </div>
                     
                     {/* Trạng thái */}
                     <div className="info-row">
@@ -172,6 +200,7 @@ const App = () => {
             }
             
             const data = await response.json(); 
+            // Giả định rằng API trả về dữ liệu đã có 'tutorname' và 'date'
             setSessionsData(data);
         } catch (error) {
             console.error("Lỗi khi lấy dữ liệu sessions:", error);
@@ -346,7 +375,7 @@ const App = () => {
                             className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 mb-6 transition duration-150"
                         >
                             <option value="">Tất cả</option>
-                            <option value="available">Rảnh (Đăng ký)</option>
+                            <option value="available">Sẵn sàng (Đăng ký)</option>
                             <option value="joined">Đã tham gia (Hủy)</option>
                             <option value="completed">Hoàn thành</option>
                         </select>
