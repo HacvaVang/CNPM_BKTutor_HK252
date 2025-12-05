@@ -16,7 +16,7 @@ source venv/bin/activate
 pip install  -r requirements.txt
 ```
 ## Chạy CAS-server
-Vào thư mục sso_backend
+- Vào thư mục sso_backend
 ```bash
 cd sso_backend
 ```
@@ -25,12 +25,16 @@ và chạy lệnh như bên dưới:
 python3 sso_backend/manage.py migrate
 python3 sso_backend/manage.py runserver 8000
 ```
-Nếu muốn tạo tài khoản admin, hãy chạy lệnh (Có thể bỏ qua bước này)
+- Nếu muốn tạo tài khoản admin, hãy chạy lệnh và nhập username và pass mong muốn (Có thể bỏ qua bước này)
 ```bash
 python3 manage.py createsuperuser
 ```
-Nhập username và pass mong muốn
+và nhập username và pass mong muốn
 
+- Muốn biết thông tin về user trong SSO, click vào file `user.txt` hoặc nhập trong terminal:
+```bash
+cat user.txt
+```
 # Hướng dẫn chạy dự án locally
 
 ### Yêu cầu
