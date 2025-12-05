@@ -13,6 +13,7 @@ import NavigationBar from '../components/navigationbar.jsx';
 export default function HomePage() {
   const navigate = useNavigate();
   const [identity, setIdentity] = useState(null);
+  const [loading, setLoading] = useState(false); // Đặt false nếu dữ liệu được truyền từ prop hoặc fetch bên ngoài
   const fetchidentity = async () => {
     try{
       setLoading(true);
@@ -37,7 +38,9 @@ export default function HomePage() {
 
   useEffect(() => {
     if (!identity) return;
+    console.log(identity.role);
     switch (identity.role) {
+        
         case "admin":
             navigate("/adminhome");
         break;
