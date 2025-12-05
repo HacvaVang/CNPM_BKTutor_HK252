@@ -14,20 +14,15 @@ cd sso_backend
 ```
 và chạy lệnh như bên dưới:
 ```bash
-python3 manage.py miragte
-python3 manage.py runserver 8000
+python3 manage.py migrate
+python3 manage.py runserver
 ```
 Nếu chưa có tài khoản admin, hãy chạy lệnh
 ```bash
 python3 manage.py createsuperuser
 ```
-Nhập username và pass tương ứng: `hac` và `123`
+Nhập username và pass tương ứng: `hac` và `123` hoặc `DangHuyenVu` và `123`
 
-## Chạy CAS-client
-Vào thư mục sso_backend chạy lệnh
-```bash
-python3 cas_client.py
-```
 # Hướng dẫn chạy dự án locally
 
 ### Yêu cầu
@@ -41,24 +36,23 @@ python3 cas_client.py
 Mở terminal tại **thư mục gốc của dự án** (nơi có file `package.json`):
 
 ```bash
+cd cnpm-bktutor
 npm install          # chỉ chạy lần đầu hoặc khi có thay đổi dependencies
 npm install -D tailwindcss @tailwindcss/vite
-npm run start
+npm run dev
 ```
-### 2. Chạy Server (Backend)
+#### 2. Chạy Server (Backend)
 ```bash
-cd src/services
+cd cnpm-bktutor/src/services
 pip install -r requirements.txt
 python3 api.py        # Mac/Linux
 # hoặc
 python api.py         # Windows
 ```
 - Chạy http://127.0.0.1:8080/set-cookie để tạo cookie giả lập 
-### 3. Chạy Data_core
+#### 3. Chạy Data_core
 ```bash
-cd HCMUT_LIBRARY
-
-# Cài đặt dependencies (chỉ cần chạy lần đầu hoặc khi requirements.txt thay đổi)
+cd cnpm-bktutor/HCMUT_LIBRARY
 pip install -r requirements.txt
 
 # Khởi động server
