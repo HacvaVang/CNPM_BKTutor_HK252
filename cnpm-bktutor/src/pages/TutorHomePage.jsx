@@ -155,13 +155,12 @@ export default function HomePage() {
             <Typography 
               variant="h6" 
               sx={{ fontWeight: 600 , cursor: 'pointer'}}
-              onClick={() => navigate ('/')}
+              onClick={() => navigate ('/tutorhome')}
             >
               BK Tutor
             </Typography>
             <Typography
               component="a"
-              href="#"
               sx={{
                 color: 'white',
                 textDecoration: 'none',
@@ -169,6 +168,7 @@ export default function HomePage() {
                 cursor: 'pointer',
                 '&:hover': { opacity: 0.8 },
               }}
+              onClick={() => navigate("/tutorhome")}
             >
               Trang chủ
             </Typography>
@@ -187,7 +187,6 @@ export default function HomePage() {
             </Typography>
             <Typography
               component="a"
-              href="http://localhost:5173/subjectlist"
               sx={{
                 color: 'white',
                 textDecoration: 'none',
@@ -195,6 +194,7 @@ export default function HomePage() {
                 cursor: 'pointer',
                 '&:hover': { opacity: 0.8 },
               }}
+              onClick={() => navigate("/subjectlist")}
             >
               Tài liệu
             </Typography>
