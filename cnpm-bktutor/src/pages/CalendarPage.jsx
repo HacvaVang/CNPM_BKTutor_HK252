@@ -18,9 +18,10 @@ import clsx from "clsx";
 // === 1. IMPORT NAVIGATION BAR TỪ ĐƯỜNG DẪN CUNG CẤP ===
 import NavigationBar from "../components/navigationbar.jsx"; 
 
+const API_BASE_URL = "http://localhost:8080";
 
 // =======================================================================
-// === 2. COMPONENTS POP-UP ĐÃ CẬP NHẬT (THÊM GIẢNG VIÊN) ===
+// === 2. COMPONENTS POP-UP (GIỮ NGUYÊN) ===
 // =======================================================================
 
 // --- Pop-up Chi tiết Sự kiện ---
@@ -46,9 +47,8 @@ const EventDetailPopup = ({ event, onClose }) => {
           <p>
             <span className="font-semibold text-gray-900">Giờ:</span> {event.formattedTime}
           </p>
-          {/* THÊM TRƯỜNG GIẢNG VIÊN */}
           <p>
-            <span className="font-semibold text-gray-900">Giảng viên:</span> <span className="text-lg font-medium text-red-600">{event.lecturer}</span>
+            <span className="font-semibold text-gray-900">Giảng viên:</span> <span className="text-lg font-medium text-red-600">{event.lecturer || event.tutor || "Chưa xác định"}</span>
           </p>
           <p>
             <span className="font-semibold text-gray-900">Phòng/Địa điểm:</span> <span className="text-lg font-medium text-purple-600">{event.room}</span>
@@ -99,9 +99,8 @@ const AllEventsPopup = ({ day, events, onClose }) => {
               <div className="text-sm text-green-700 mt-1">
                 <span className="font-semibold">Thời gian:</span> {event.formattedTime}
               </div>
-              {/* THÊM TRƯỜNG GIẢNG VIÊN */}
               <div className="text-sm text-red-600">
-                <span className="font-semibold">Giảng viên:</span> <span className="font-medium">{event.lecturer}</span>
+                <span className="font-semibold">Giảng viên:</span> <span className="font-medium">{event.lecturer || event.tutor || "Chưa xác định"}</span>
               </div>
               <div className="text-sm text-green-700">
                 <span className="font-semibold">Phòng:</span> <span className="font-medium">{event.room}</span>
@@ -125,7 +124,7 @@ const AllEventsPopup = ({ day, events, onClose }) => {
 
 
 // =======================================================================
-// === 3. COMPONENTS PHỤ ĐÃ CẬP NHẬT ===
+// === 3. COMPONENTS PHỤ (GIỮ NGUYÊN) ===
 // =======================================================================
 
 const CalendarHeader = ({ currentDate, changeMonth, locale }) => {
@@ -174,7 +173,7 @@ const CalendarDaysHeader = () => {
 // --- CẬP NHẬT: Thêm hiển thị tên giảng viên trong ô lịch ---
 const CalendarCells = ({ calendarData, currentDate, today, events, openDetailPopup, openAllEventsPopup }) => {
   const getEventsForDay = (day) => events.filter((e) => isSameDay(e.dateObject, day));
-  const limit = 3; // Giới hạn số sự kiện hiển thị trên ô lịch để có đủ chỗ cho tên giảng viên
+  const limit = 2; 
 
   return (
     <div className="grid grid-cols-7 border-l border-b border-gray-300">
@@ -213,15 +212,16 @@ const CalendarCells = ({ calendarData, currentDate, today, events, openDetailPop
               {dayEvents.slice(0, limit).map((event) => (
                 <div
                   key={event.id}
-                  onClick={() => openDetailPopup(event)} // Gán sự kiện click để mở chi tiết
+                  onClick={() => openDetailPopup(event)} 
                   className="bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-md p-2 border-l-4 border-blue-600 cursor-pointer shadow-sm"
-                  title={`${event.title} - ${event.lecturer || event.tutorid}`} // Thêm giảng viên vào title
+                  title={`${event.title} - GV: ${event.lecturer || event.tutor || 'Chưa xác định'}`}
                 >
                   <div className="font-semibold text-blue-900 truncate">{event.title}</div>
                   <div className="text-blue-700 mt-1">
                     <span className="block">{event.formattedTime}</span>
+                    {/* SỬ DỤNG TRƯỜNG LECTURER HOẶC TUTOR CÓ SẴN */}
                     <span className="font-medium text-red-600 truncate block mt-1">
-                      {event.lecturer}
+                      {event.lecturer || event.tutor || "Chưa xác định"}
                     </span>
                   </div>
                 </div>
@@ -230,7 +230,7 @@ const CalendarCells = ({ calendarData, currentDate, today, events, openDetailPop
               {/* Button mở Tất cả sự kiện */}
               {dayEvents.length > limit && (
                 <button
-                  onClick={() => openAllEventsPopup(day, dayEvents)} // Gán sự kiện click để mở tất cả
+                  onClick={() => openAllEventsPopup(day, dayEvents)}
                   className="w-full text-blue-600 font-bold text-xs pt-1 text-left hover:text-blue-800 transition"
                 >
                   + {dayEvents.length - limit} sự kiện nữa
@@ -245,7 +245,7 @@ const CalendarCells = ({ calendarData, currentDate, today, events, openDetailPop
 };
 
 // =======================================================================
-// === 4. COMPONENT CHÍNH ĐÃ CẬP NHẬT LOGIC FETCH VÀ THÊM NAV BAR ===
+// === 4. COMPONENT CHÍNH ĐÃ BỎ LOGIC FETCH TUTOR ID ===
 // =======================================================================
 export default function CalendarPage() {
   const [events, setEvents] = useState([]);
@@ -254,11 +254,9 @@ export default function CalendarPage() {
   const [error, setError] = useState(null);
   const today = new Date();
 
-  // STATE MỚI để quản lý Pop-up
-  const [selectedEvent, setSelectedEvent] = useState(null); // Chi tiết sự kiện
-  const [allEventsPopupData, setAllEventsPopupData] = useState(null); // Tất cả sự kiện trong ngày
+  const [selectedEvent, setSelectedEvent] = useState(null); 
+  const [allEventsPopupData, setAllEventsPopupData] = useState(null); 
 
-  // Hàm xử lý mở/đóng Pop-up
   const openDetailPopup = (event) => setSelectedEvent(event);
   const closeDetailPopup = () => setSelectedEvent(null);
 
@@ -273,9 +271,9 @@ export default function CalendarPage() {
           setError(null);
   
           // 1. FETCH DANH SÁCH SỰ KIỆN GỐC
-          const eventsResponse = await fetch("http://localhost:8080/api/events", {
+          const eventsResponse = await fetch(`${API_BASE_URL}/api/events`, {
             method: "GET",
-            credentials: "include", // bắt buộc vì backend kiểm tra session cookie
+            credentials: "include", 
           });
   
           if (!eventsResponse.ok) {
@@ -287,52 +285,15 @@ export default function CalendarPage() {
             return;
           }
   
+          // Lấy dữ liệu sự kiện
           const eventsData = await eventsResponse.json();
   
-          // 2. TẠO DANH SÁCH PROMISE ĐỂ FETCH TÊN GIẢNG VIÊN SONG SONG
-          const eventsWithTutorPromises = eventsData.map(async (event) => {
-            const tutorId = event.tutorid;
-
-            if (!tutorId) {
-                return { ...event, lecturer: "Chưa phân công" };
-            }
-
-            try {
-                // Fetch tên giảng viên từ API user
-                const userResponse = await fetch(`http://localhost:8080/api/user?id=${tutorId}`, {
-                    method: "GET",
-                    credentials: "include",
-                });
-                
-                if (!userResponse.ok) {
-                    console.warn(`Không thể lấy chi tiết user ID: ${tutorId}`);
-                    return { ...event, lecturer: `ID: ${tutorId} (Lỗi tải)` };
-                }
-
-                const userData = await userResponse.json();
-                
-                // Lấy trường 'name' từ dữ liệu user
-                const lecturerName = userData.name || `ID: ${tutorId} (Không rõ tên)`; 
-                
-                return {
-                    ...event,
-                    lecturer: lecturerName, // Thêm trường lecturer
-                };
-
-            } catch (fetchError) {
-                console.error(`Lỗi khi fetch user ID ${tutorId}:`, fetchError);
-                return { ...event, lecturer: `ID: ${tutorId} (Lỗi kết nối)` };
-            }
-          });
+          // *** LOẠI BỎ TOÀN BỘ LOGIC FETCH TÊN GIẢNG VIÊN DỰA TRÊN tutorid ***
+          // *** GIẢ ĐỊNH DỮ LIỆU GỐC ĐÃ CÓ TRƯỜNG TÊN GIẢNG VIÊN (lecturer/tutor) ***
   
-          // 3. ĐỢI TẤT CẢ CÁC YÊU CẦU HOÀN TẤT
-          const eventsWithTutorNames = await Promise.all(eventsWithTutorPromises);
-
-          // 4. XỬ LÝ FORMAT NGÀY/GIỜ
-          const processedEvents = eventsWithTutorNames.map((event) => {
-            // Parse ngày từ trường "date" (YYYY-MM-DD)
+          // 2. XỬ LÝ FORMAT NGÀY/GIỜ TRỰC TIẾP
+          const processedEvents = eventsData.map((event) => {
             const dateObj = parseISO(event.date); 
-            // Parse giờ từ timestart và timeend (ISO string)
             const startTime = parseISO(event.timestart);
             const endTime = parseISO(event.timeend);
   
@@ -340,7 +301,8 @@ export default function CalendarPage() {
               ...event,
               dateObject: dateObj,
               formattedTime: `${format(startTime, "HH:mm")} → ${format(endTime, "HH:mm")}`,
-              // trường lecturer đã có sẵn từ Promise.all
+              // Đảm bảo trường lecturer/tutor được giữ lại từ dữ liệu gốc
+              lecturer: event.lecturer || event.tutor || "Chưa xác định", 
             };
           });
   
@@ -354,13 +316,13 @@ export default function CalendarPage() {
       };
 
     fetchEvents();
-  }, []); // Dependecy array trống để chỉ chạy 1 lần khi mount
+  }, []); 
 
-  // Tính lưới lịch
+  // Tính lưới lịch (Không đổi)
   const calendarData = useMemo(() => {
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(monthStart);
-    const startDate = startOfWeek(monthStart, { weekStartsOn: 1 }); // Bắt đầu tuần từ T2
+    const startDate = startOfWeek(monthStart, { weekStartsOn: 1 });
     const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
 
     const rows = [];
@@ -381,14 +343,11 @@ export default function CalendarPage() {
   };
 
 
-
   return (
     <>
-      {/* === THÊM NAVIGATION BAR Ở ĐÂY === */}
-      {/* Prop identity cần được truyền từ state quản lý người dùng thực tế */}
       <NavigationBar/> 
       
-      <div className="bg-gray-50 min-h-screen p-8 pt-[64px]"> {/* Thêm padding top để tránh NavigationBar che mất nội dung */}
+      <div className="bg-gray-50 min-h-screen p-8 pt-[64px]"> 
         <h1 className="text-4xl font-extrabold text-blue-700 mb-8 text-center">Lịch Học Tập</h1>
 
         <div className="max-w-7xl mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden border-4 border-purple-500">
@@ -397,7 +356,6 @@ export default function CalendarPage() {
           <div>
             <CalendarDaysHeader />
 
-            {/* Hiển thị trạng thái tải/lỗi/không có dữ liệu */}
             {loading && (
               <div className="p-16 text-center text-xl text-gray-600">Đang tải lịch học...</div>
             )}
@@ -408,24 +366,21 @@ export default function CalendarPage() {
               <div className="p-16 text-center text-xl text-gray-500">Không có lịch học nào sắp tới.</div>
             )}
 
-            {/* Hiển thị lưới lịch */}
             {!loading && !error && (
               <CalendarCells
                 calendarData={calendarData}
                 currentDate={currentDate}
                 today={today}
                 events={events}
-                openDetailPopup={openDetailPopup} // Truyền hàm mở pop-up chi tiết
-                openAllEventsPopup={openAllEventsPopup} // Truyền hàm mở pop-up tất cả
+                openDetailPopup={openDetailPopup} 
+                openAllEventsPopup={openAllEventsPopup} 
               />
             )}
           </div>
         </div>
 
-        {/* HIỂN THỊ POP-UP CHI TIẾT SỰ KIỆN */}
         <EventDetailPopup event={selectedEvent} onClose={closeDetailPopup} />
         
-        {/* HIỂN THỊ POP-UP TẤT CẢ SỰ KIỆN TRONG NGÀY */}
         {allEventsPopupData && (
           <AllEventsPopup
             day={allEventsPopupData.day}
