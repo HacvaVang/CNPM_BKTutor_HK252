@@ -352,12 +352,11 @@ def create_event():
     new_row = {
         "eventid": eventid,
         "title": data.get("title", ""),
-        "userid": data.get("userid", ""),
         "date": str(data.get("start")).split("T")[0],  # YYYY-MM-DD
         "timestart": data.get("start", ""),
         "timeend": data.get("end", ""),
         "room": data.get("room", ""),
-        "status": data.get("status", "pending"),
+        "status": "upcoming",
         "tutorid": data.get("userid", "")
     }
 
